@@ -1,0 +1,4072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mabar Badminton Pro — Fun Match & Matchmaking System</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* =====================================================================
+       BADMINTON COURT LIGHT THEME — CLEAN, SPORTY & HIGH LEGIBILITY
+       ===================================================================== */
+    html, body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #F2F7F4;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    /* Pola garis lapangan badminton halus pada latar belakang halaman */
+    .badminton-page-bg {
+      background-color: #F2F7F4;
+      background-image:
+        linear-gradient(to right, rgba(5, 150, 105, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(5, 150, 105, 0.045) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.07), transparent 55%);
+      background-size: 64px 64px, 64px 64px, 100% 380px;
+    }
+
+    /* Header terang dengan pola garis lapangan & aksen jaring net tipis */
+    .badminton-arena-header {
+      background-color: #FFFFFF;
+      background-image:
+        radial-gradient(circle at 12% 50%, rgba(5, 150, 105, 0.09), transparent 46%),
+        radial-gradient(circle at 88% 35%, rgba(217, 119, 6, 0.07), transparent 44%),
+        linear-gradient(to right, rgba(5, 150, 105, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(5, 150, 105, 0.05) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+    }
+
+    /* Aksen pita jaring net badminton tipis di bagian atas header */
+    .badminton-net-strip {
+      height: 5px;
+      background-color: #059669;
+      background-image:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.35) 0px,
+          rgba(255, 255, 255, 0.35) 1px,
+          transparent 1px,
+          transparent 8px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.25) 0px,
+          rgba(255, 255, 255, 0.25) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+    }
+
+    /* Mini Lapangan Badminton untuk Head-to-Head Draft & Active Match */
+    .mini-court-surface {
+      position: relative;
+      background: linear-gradient(135deg, #E8F6EE 0%, #EFFAF4 50%, #E6F4EC 100%);
+      border: 1.5px solid #BFE3D0;
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
+    }
+    .mini-court-surface::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border: 1.5px solid rgba(255, 255, 255, 0.92);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    /* Garis jaring net vertikal (desktop) & horizontal (mobile) di tengah mini court */
+    .court-net-vertical {
+      background-image: repeating-linear-gradient(
+        0deg,
+        rgba(4, 120, 87, 0.42) 0px,
+        rgba(4, 120, 87, 0.42) 2px,
+        transparent 2px,
+        transparent 6px
+      );
+    }
+    .court-net-horizontal {
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(4, 120, 87, 0.42) 0px,
+        rgba(4, 120, 87, 0.42) 2px,
+        transparent 2px,
+        transparent 6px
+      );
+    }
+
+    /* Papan skor angka tabular tegas */
+    .scoreboard-digits {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    /* Dasar garis lapangan pada Podium Juara */
+    .podium-court-stage {
+      position: relative;
+      background: linear-gradient(180deg, rgba(232, 246, 238, 0.45) 0%, rgba(220, 234, 227, 0.65) 100%);
+      border: 1.5px solid #CFE5D9;
+    }
+    .podium-court-stage::after {
+      content: '';
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 12px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95) 15%, rgba(255, 255, 255, 0.95) 85%, transparent);
+      border-radius: 9999px;
+      pointer-events: none;
+    }
+
+    /* Hilangkan spinner bawaan input number */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    /* Animasi Toast & Modal */
+    @keyframes slideInToast {
+      from { transform: translateY(-14px) scale(0.96); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.96) translateY(10px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .animate-toast {
+      animation: slideInToast 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-modal {
+      animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Animasi Podium Medali Juara */
+    @keyframes floatMedal {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-6px) scale(1.03); }
+    }
+    @keyframes pulseAuraGold {
+      0%, 100% { opacity: 0.48; transform: scale(0.94); }
+      50% { opacity: 0.86; transform: scale(1.1); }
+    }
+    @keyframes pulseAuraSoft {
+      0%, 100% { opacity: 0.34; transform: scale(0.95); }
+      50% { opacity: 0.68; transform: scale(1.07); }
+    }
+    @keyframes shimmerSweepLight {
+      0% { transform: translateX(-160%) skewX(-22deg); }
+      55% { transform: translateX(260%) skewX(-22deg); }
+      100% { transform: translateX(260%) skewX(-22deg); }
+    }
+    @keyframes twinkleStar {
+      0%, 100% { opacity: 0.28; transform: scale(0.75) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.22) rotate(22deg); }
+    }
+
+    .animate-float-gold {
+      animation: floatMedal 3.2s ease-in-out infinite;
+    }
+    .animate-float-silver {
+      animation: floatMedal 3.6s ease-in-out 0.4s infinite;
+    }
+    .animate-float-bronze {
+      animation: floatMedal 3.9s ease-in-out 0.8s infinite;
+    }
+    .aura-gold {
+      animation: pulseAuraGold 3s ease-in-out infinite;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, rgba(251, 191, 36, 0.16) 50%, transparent 74%);
+    }
+    .aura-silver {
+      animation: pulseAuraSoft 3.4s ease-in-out infinite;
+      background: radial-gradient(circle, rgba(148, 163, 184, 0.38) 0%, rgba(203, 213, 225, 0.14) 52%, transparent 74%);
+    }
+    .aura-bronze {
+      animation: pulseAuraSoft 3.6s ease-in-out infinite;
+      background: radial-gradient(circle, rgba(234, 88, 12, 0.32) 0%, rgba(251, 146, 60, 0.12) 52%, transparent 74%);
+    }
+    .champion-shimmer-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .champion-shimmer-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 45%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), rgba(254, 243, 199, 0.5), transparent);
+      animation: shimmerSweepLight 4.6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .sparkle-1 { animation: twinkleStar 2.1s ease-in-out infinite; }
+    .sparkle-2 { animation: twinkleStar 2.6s ease-in-out 0.6s infinite; }
+    .sparkle-3 { animation: twinkleStar 2.0s ease-in-out 1.2s infinite; }
+    .sparkle-4 { animation: twinkleStar 2.8s ease-in-out 0.3s infinite; }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #E8F1EC;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #B8D4C5;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #88B59E;
+    }
+  </style>
+</head>
+<body class="min-h-screen badminton-page-bg text-[#0F172A] flex flex-col selection:bg-emerald-100 selection:text-emerald-900">
+
+  <!-- ===================================================================== -->
+  <!-- TOAST NOTIFICATION CONTAINER (NO NATIVE ALERT)                        -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-50 flex flex-col gap-2.5 pointer-events-none"></div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL OVERLAY CONTAINER (CLOUD ROOM, EDIT ENTITY, EDIT MATCH, CONFIRM)-->
+  <!-- ===================================================================== -->
+  <div id="modal-backdrop" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/45 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+    <div id="modal-content" class="w-full flex items-center justify-center"></div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BADMINTON ARENA HEADER (LIGHT MODE + SHUTTLECOCK & CROSSED RACKETS)   -->
+  <!-- ===================================================================== -->
+  <header class="badminton-arena-header border-b border-[#DCEAE3]">
+    <!-- Garis jaring net badminton tipis di puncak layar -->
+    <div class="badminton-net-strip w-full" aria-hidden="true"></div>
+
+    <div class="max-w-6xl mx-auto px-3 sm:px-5 py-3 flex items-center justify-between gap-2">
+      <!-- Brand Emblem: Crossed Rackets & Shuttlecock SVG -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#059669] to-[#047857] flex items-center justify-center shadow-md shadow-emerald-700/20 border border-emerald-400/40 shrink-0">
+          <svg class="w-7 h-7 text-white" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <!-- Raket Kiri Silang -->
+            <ellipse cx="10.5" cy="10.5" rx="4.2" ry="5.6" transform="rotate(-45 10.5 10.5)" fill="rgba(255,255,255,0.14)"/>
+            <path d="M14.2 14.2L25 25"/>
+            <path d="M23.5 23.5L26 26" stroke-width="2.6"/>
+            <!-- Raket Kanan Silang -->
+            <ellipse cx="21.5" cy="10.5" rx="4.2" ry="5.6" transform="rotate(45 21.5 10.5)" fill="rgba(255,255,255,0.14)"/>
+            <path d="M17.8 14.2L7 25"/>
+            <path d="M8.5 23.5L6 26" stroke-width="2.6"/>
+            <!-- Kok / Shuttlecock di tengah atas -->
+            <path d="M16 4L13.5 9.2H18.5L16 4Z" fill="#FDE68A" stroke="#FEF3C7" stroke-width="1.2"/>
+            <circle cx="16" cy="10.4" r="2.1" fill="#FFFFFF" stroke="#047857" stroke-width="1"/>
+          </svg>
+        </div>
+
+        <div class="min-w-0">
+          <h1 class="text-sm sm:text-lg font-extrabold tracking-tight text-[#0F172A] truncate leading-tight">
+            Mabar Badminton <span class="text-[#059669]">Pro</span>
+          </h1>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span id="cloud-status-badge" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span>Menghubungkan...</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cloud Room Code Pill -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          id="room-code-pill"
+          onclick="window.openCloudRoomModal()"
+          title="Kelola Room Cloud & Sinkronisasi Multi-Perangkat"
+          aria-label="Kelola Room Cloud"
+          class="flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-[#C6E5D6] text-xs font-bold text-[#047857] transition cursor-pointer shadow-xs"
+        >
+          <svg class="w-4 h-4 text-[#059669] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+          </svg>
+          <span class="hidden sm:inline text-[#047857] font-semibold">Room:</span>
+          <span id="header-room-code" class="font-mono font-extrabold tracking-wider text-[#047857]">MABAR-UTAMA</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- STICKY ICON-ONLY NAVIGATION BAR (BADMINTON ICONS, NO TEXT LABELS!)    -->
+  <!-- ===================================================================== -->
+  <nav class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#DCEAE3] shadow-xs" aria-label="Navigasi Utama">
+    <div class="max-w-6xl mx-auto px-3 sm:px-5 py-2">
+      <div class="grid grid-cols-3 gap-2 sm:gap-3">
+        <!-- Tab 1: Daftar Pemain & Pengaturan (Players Icon + Counter Badge) -->
+        <button
+          type="button"
+          id="nav-tab-participants"
+          onclick="window.switchTab('participants')"
+          title="Pengaturan Mabar, Check-in & Daftar Hadir"
+          aria-label="Pengaturan Mabar, Check-in dan Daftar Hadir"
+          class="relative flex items-center justify-center py-2.5 sm:py-3 rounded-2xl border transition-all duration-200 cursor-pointer"
+        >
+          <svg class="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span
+            id="nav-badge-participants"
+            class="absolute top-1.5 right-3 sm:right-6 min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-extrabold flex items-center justify-center transition"
+          >0</span>
+        </button>
+
+        <!-- Tab 2: Matchmaking, Lapangan & Riwayat (Racket & Shuttlecock Icon + Active Matches Badge) -->
+        <button
+          type="button"
+          id="nav-tab-matches"
+          onclick="window.switchTab('matches')"
+          title="Matchmaking, Lapangan Aktif & Riwayat Pertandingan"
+          aria-label="Matchmaking, Lapangan Aktif dan Riwayat Pertandingan"
+          class="relative flex items-center justify-center py-2.5 sm:py-3 rounded-2xl border transition-all duration-200 cursor-pointer"
+        >
+          <svg class="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <!-- Raket Badminton -->
+            <ellipse cx="14.5" cy="9.5" rx="5" ry="6.6" transform="rotate(45 14.5 9.5)"/>
+            <path d="m11.2 6.2 6.6 6.6" stroke-width="1.4"/>
+            <path d="m14.2 4.8 5 5" stroke-width="1.4"/>
+            <path d="m9.8 14.2-5.8 5.8"/>
+            <path d="M3 19.2 4.8 21" stroke-width="2.4"/>
+            <!-- Kok Kecil -->
+            <path d="M5 4.2 7.8 5.5 6.3 7.8 4.2 6.8Z" fill="currentColor" fill-opacity="0.25"/>
+            <circle cx="7.4" cy="7.2" r="1.2" fill="currentColor"/>
+          </svg>
+          <span
+            id="nav-badge-matches"
+            class="absolute top-1.5 right-3 sm:right-6 min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-extrabold flex items-center justify-center transition"
+          >0</span>
+        </button>
+
+        <!-- Tab 3: Podium Juara & Klasemen Live (Trophy Icon Only) -->
+        <button
+          type="button"
+          id="nav-tab-leaderboard"
+          onclick="window.switchTab('leaderboard')"
+          title="Podium Juara & Klasemen Live"
+          aria-label="Podium Juara dan Klasemen Live"
+          class="relative flex items-center justify-center py-2.5 sm:py-3 rounded-2xl border transition-all duration-200 cursor-pointer"
+        >
+          <svg class="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+            <path d="M4 22h16"/>
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            <circle cx="12" cy="7" r="1.3" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN CONTENT AREA                                                     -->
+  <!-- ===================================================================== -->
+  <main id="app-main" class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-5 py-5 pb-16 space-y-5">
+    <!-- Konten dinamis di-render oleh JavaScript -->
+  </main>
+
+  <!-- Hidden File Input untuk Import JSON -->
+  <input type="file" id="import-json-input" accept="application/json,.json" class="hidden" />
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION LOGIC (ES6+ MODULE + FIREBASE FIRESTORE CLOUD SYNC)       -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // =========================================================================
+    // 1. CONSTANTS, ENVIRONMENT & DEFAULT STATE
+    // =========================================================================
+    const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'badminton-mabar-pro';
+    const FIREBASE_CONFIG = typeof __firebase_config !== 'undefined'
+      ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
+      : null;
+    const INITIAL_AUTH_TOKEN = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    const VALID_MODES = ['individual', 'fixed_pair', 'single'];
+
+    const DEFAULT_SETTINGS = {
+      mode: 'individual', // 'individual' (Ganda Acak) | 'fixed_pair' (Ganda Tetap) | 'single' (Tunggal 1v1)
+      maxMatches: 3,      // Kuota reguler default 3x (min 1, maks 20)
+      setCount: 2,        // 1 | 2 | 3
+      targetScore: 21,    // 11 | 15 | 21 | 30 (default 21)
+      deuceEnabled: false,// Toggle Deuce: OFF / ON
+    };
+
+    // Source of Truth State — Statistik & Status Wildcard SELALU direkalkulasi dinamis dari matchHistory
+    let state = {
+      settings: { ...DEFAULT_SETTINGS },
+      entities: [],       // [{ id, name, teamName, player1, player2, isLeft, createdAt }]
+      activeMatches: [],  // [{ id, matchNumber, court, mode, setCount, targetScore, deuceEnabled, teamA:[id], teamB:[id], scores:[{a:'',b:''}], startTime }]
+      matchHistory: [],   // [{ id, matchNumber, court, mode, setCount, targetScore, deuceEnabled, teamA:[id], teamB:[id], sets:[{a,b}], startTime, endTime }]
+      matchCounter: 1,
+      updatedAt: 0,
+    };
+
+    // Local UI State
+    const uiState = {
+      activeTab: 'participants', // 'participants' | 'matches' | 'leaderboard'
+      allowWildcard: false,
+      matchmakingMode: 'auto',   // 'auto' | 'manual'
+      draftMatch: null,          // { teamA: [id...], teamB: [id...], court: 'Court 1', source: 'auto'|'manual' }
+      manualSlots: { a1: '', a2: '', b1: '', b2: '' },
+      searchQuery: '',
+      lastAutoSignature: '',
+    };
+
+    // Firebase Runtime Variables
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let firebaseReady = false;
+    let unsubscribeRoom = null;
+    let cloudSyncStatus = 'connecting'; // 'connecting' | 'online' | 'syncing' | 'offline'
+    let syncTimer = null;
+
+    function getInitialRoomCode() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlRoom = params.get('room');
+        if (urlRoom && /^[A-Za-z0-9_-]{3,24}$/.test(urlRoom.trim())) {
+          return urlRoom.trim().toUpperCase();
+        }
+        const hashRoom = window.location.hash.replace(/^#room=/i, '').trim();
+        if (hashRoom && /^[A-Za-z0-9_-]{3,24}$/.test(hashRoom)) {
+          return hashRoom.toUpperCase();
+        }
+        const saved = localStorage.getItem('mabar_badminton_room_code');
+        if (saved && /^[A-Za-z0-9_-]{3,24}$/.test(saved)) {
+          return saved.toUpperCase();
+        }
+      } catch (_) {}
+      return 'MABAR-UTAMA';
+    }
+
+    let currentRoomId = getInitialRoomCode();
+
+    function getLocalStorageKey(roomId = currentRoomId) {
+      return `mabar_badminton_pro_v4_${roomId}`;
+    }
+
+    // =========================================================================
+    // 2. MODE LABELS & UTILITY HELPERS
+    // =========================================================================
+    function getModeMeta(mode = state.settings.mode) {
+      if (mode === 'fixed_pair') {
+        return {
+          mode: 'fixed_pair',
+          label: 'Ganda Tetap (Pair)',
+          entityNoun: 'Pasangan',
+          entityNounLower: 'pasangan',
+          sideALabel: 'Tim A',
+          sideBLabel: 'Tim B',
+          sidePrefix: 'Tim',
+          requiredSlots: 2,
+          perSide: 1,
+        };
+      }
+      if (mode === 'single') {
+        return {
+          mode: 'single',
+          label: 'Tunggal (Single)',
+          entityNoun: 'Pemain',
+          entityNounLower: 'pemain',
+          sideALabel: 'Pemain A',
+          sideBLabel: 'Pemain B',
+          sidePrefix: 'Pemain',
+          requiredSlots: 2,
+          perSide: 1,
+        };
+      }
+      return {
+        mode: 'individual',
+        label: 'Ganda Acak (Mix)',
+        entityNoun: 'Peserta',
+        entityNounLower: 'peserta',
+        sideALabel: 'Tim A',
+        sideBLabel: 'Tim B',
+        sidePrefix: 'Tim',
+        requiredSlots: 4,
+        perSide: 2,
+      };
+    }
+
+    function escapeHTML(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function generateId() {
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+      }
+      return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    }
+
+    function formatClock(ts, includeSeconds = true) {
+      if (!ts) return '--:--:--';
+      const d = new Date(ts);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      if (!includeSeconds) return `${hh}:${mm}`;
+      const ss = String(d.getSeconds()).padStart(2, '0');
+      return `${hh}:${mm}:${ss}`;
+    }
+
+    function formatDuration(totalSeconds) {
+      const sec = Math.max(0, Math.floor(totalSeconds || 0));
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      if (h > 0) {
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    // Iframe-safe clipboard copy
+    function copyTextToClipboard(text) {
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, text.length);
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return ok;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    // Custom Toast Notification (No native alert)
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const stylesMap = {
+        success: {
+          bg: 'bg-white border-emerald-300 text-slate-800 shadow-lg shadow-emerald-900/10',
+          iconWrap: 'bg-emerald-100 text-[#047857]',
+          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+        },
+        error: {
+          bg: 'bg-white border-rose-300 text-slate-800 shadow-lg shadow-rose-900/10',
+          iconWrap: 'bg-rose-100 text-rose-700',
+          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`
+        },
+        warning: {
+          bg: 'bg-white border-amber-300 text-slate-800 shadow-lg shadow-amber-900/10',
+          iconWrap: 'bg-amber-100 text-amber-700',
+          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+        },
+        info: {
+          bg: 'bg-white border-[#C6E5D6] text-slate-800 shadow-lg shadow-emerald-900/10',
+          iconWrap: 'bg-emerald-50 text-[#059669]',
+          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
+        }
+      };
+
+      const style = stylesMap[type] || stylesMap.info;
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto animate-toast flex items-start gap-3 px-3.5 py-3 rounded-2xl border text-xs sm:text-sm font-medium ${style.bg}`;
+      el.innerHTML = `
+        <span class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${style.iconWrap}">${style.icon}</span>
+        <div class="flex-1 leading-snug pt-0.5">${escapeHTML(message)}</div>
+        <button type="button" class="text-slate-400 hover:text-slate-700 transition cursor-pointer shrink-0 p-0.5" aria-label="Tutup notifikasi">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      `;
+      el.querySelector('button').addEventListener('click', () => el.remove());
+      container.appendChild(el);
+
+      setTimeout(() => {
+        if (el.parentNode) {
+          el.style.transition = 'opacity 0.25s, transform 0.25s';
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(-8px)';
+          setTimeout(() => el.remove(), 260);
+        }
+      }, 3600);
+    }
+
+    function openModal(htmlContent) {
+      const backdrop = document.getElementById('modal-backdrop');
+      const content = document.getElementById('modal-content');
+      if (!backdrop || !content) return;
+      content.innerHTML = htmlContent;
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+
+    window.closeModal = function () {
+      const backdrop = document.getElementById('modal-backdrop');
+      const content = document.getElementById('modal-content');
+      if (!backdrop || !content) return;
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+      content.innerHTML = '';
+    };
+
+    document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-backdrop' || e.target.id === 'modal-content') {
+        window.closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const backdrop = document.getElementById('modal-backdrop');
+        if (backdrop && !backdrop.classList.contains('hidden')) {
+          window.closeModal();
+        }
+      }
+    });
+
+    function showConfirmModal({ title, message, confirmLabel = 'Ya, Lanjutkan', confirmStyle = 'danger', onConfirm }) {
+      const btnClass = confirmStyle === 'danger'
+        ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm'
+        : 'bg-[#059669] hover:bg-[#047857] text-white shadow-sm';
+
+      openModal(`
+        <div class="animate-modal bg-white border border-[#DCEAE3] rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl ${confirmStyle === 'danger' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-[#047857]'} flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <h3 class="text-base font-extrabold text-slate-900">${escapeHTML(title)}</h3>
+              <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">${escapeHTML(message)}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+            <button type="button" onclick="window.closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer">
+              Batal
+            </button>
+            <button type="button" id="confirm-modal-action-btn" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${btnClass}">
+              ${escapeHTML(confirmLabel)}
+            </button>
+          </div>
+        </div>
+      `);
+
+      const actionBtn = document.getElementById('confirm-modal-action-btn');
+      if (actionBtn) {
+        actionBtn.addEventListener('click', () => {
+          window.closeModal();
+          if (typeof onConfirm === 'function') onConfirm();
+        });
+      }
+    }
+
+    // =========================================================================
+    // 3. STATE SANITIZATION, STORAGE & FIREBASE FIRESTORE CLOUD SYNC
+    // =========================================================================
+    function sanitizeState(raw) {
+      const s = raw && typeof raw === 'object' ? raw : {};
+      const rawSettings = s.settings && typeof s.settings === 'object' ? s.settings : {};
+
+      const mode = VALID_MODES.includes(rawSettings.mode) ? rawSettings.mode : 'individual';
+      const maxMatches = Math.max(1, Math.min(20, parseInt(rawSettings.maxMatches, 10) || 3));
+      const setCount = [1, 2, 3].includes(Number(rawSettings.setCount)) ? Number(rawSettings.setCount) : 2;
+      const targetScore = Math.max(5, Math.min(99, parseInt(rawSettings.targetScore, 10) || 21));
+      const deuceEnabled = rawSettings.deuceEnabled !== undefined ? Boolean(rawSettings.deuceEnabled) : false;
+
+      const entities = Array.isArray(s.entities)
+        ? s.entities.map(e => {
+            const p1 = String(e.player1 || '').trim();
+            const p2 = String(e.player2 || '').trim();
+            const teamName = String(e.teamName || '').trim();
+            let displayName = String(e.name || '').trim();
+            if (!displayName) {
+              displayName = teamName || (p1 && p2 ? `${p1} / ${p2}` : 'Peserta');
+            }
+            return {
+              id: String(e.id || generateId()),
+              name: displayName,
+              teamName,
+              player1: p1,
+              player2: p2,
+              isLeft: Boolean(e.isLeft),
+              createdAt: Number(e.createdAt || Date.now()),
+            };
+          })
+        : [];
+
+      const normalizeTeamIds = (arr) => {
+        if (!Array.isArray(arr)) return [];
+        return arr.map(item => (typeof item === 'string' ? item : String(item?.id || ''))).filter(Boolean);
+      };
+
+      const activeMatches = Array.isArray(s.activeMatches)
+        ? s.activeMatches.map(m => {
+            const sc = [1, 2, 3].includes(Number(m.setCount)) ? Number(m.setCount) : setCount;
+            const scores = Array.isArray(m.scores)
+              ? m.scores.map(x => ({ a: x?.a === 0 || x?.a ? String(x.a) : '', b: x?.b === 0 || x?.b ? String(x.b) : '' }))
+              : Array.from({ length: sc }, () => ({ a: '', b: '' }));
+            while (scores.length < sc) scores.push({ a: '', b: '' });
+            return {
+              id: String(m.id || generateId()),
+              matchNumber: Number(m.matchNumber || 1),
+              court: String(m.court || 'Court 1'),
+              mode: VALID_MODES.includes(m.mode) ? m.mode : mode,
+              setCount: sc,
+              targetScore: Math.max(5, Math.min(99, parseInt(m.targetScore, 10) || targetScore)),
+              deuceEnabled: m.deuceEnabled !== undefined ? Boolean(m.deuceEnabled) : deuceEnabled,
+              teamA: normalizeTeamIds(m.teamA),
+              teamB: normalizeTeamIds(m.teamB),
+              scores,
+              startTime: Number(m.startTime || Date.now()),
+            };
+          })
+        : [];
+
+      const matchHistory = Array.isArray(s.matchHistory)
+        ? s.matchHistory.map(m => {
+            const sc = [1, 2, 3].includes(Number(m.setCount))
+              ? Number(m.setCount)
+              : (Array.isArray(m.sets) ? Math.min(3, Math.max(1, m.sets.length)) : setCount);
+            const sets = Array.isArray(m.sets)
+              ? m.sets.map(x => ({ a: Number(x?.a || 0), b: Number(x?.b || 0) }))
+              : [];
+            return {
+              id: String(m.id || generateId()),
+              matchNumber: Number(m.matchNumber || 1),
+              court: String(m.court || 'Court 1'),
+              mode: VALID_MODES.includes(m.mode) ? m.mode : mode,
+              setCount: sc,
+              targetScore: Math.max(5, Math.min(99, parseInt(m.targetScore, 10) || targetScore)),
+              deuceEnabled: m.deuceEnabled !== undefined ? Boolean(m.deuceEnabled) : deuceEnabled,
+              teamA: normalizeTeamIds(m.teamA),
+              teamB: normalizeTeamIds(m.teamB),
+              sets,
+              startTime: Number(m.startTime || Date.now()),
+              endTime: Number(m.endTime || m.startTime || Date.now()),
+            };
+          })
+        : [];
+
+      const maxNum = Math.max(
+        0,
+        ...activeMatches.map(m => m.matchNumber),
+        ...matchHistory.map(m => m.matchNumber)
+      );
+
+      return {
+        settings: { mode, maxMatches, setCount, targetScore, deuceEnabled },
+        entities,
+        activeMatches,
+        matchHistory,
+        matchCounter: Math.max(Number(s.matchCounter || 1), maxNum + 1),
+        updatedAt: Number(s.updatedAt || Date.now()),
+      };
+    }
+
+    function loadLocalMirror(roomId = currentRoomId) {
+      try {
+        const raw = localStorage.getItem(getLocalStorageKey(roomId));
+        if (raw) {
+          state = sanitizeState(JSON.parse(raw));
+          return true;
+        }
+      } catch (err) {
+        console.warn('Gagal membaca localStorage:', err);
+      }
+      state = {
+        settings: { ...DEFAULT_SETTINGS },
+        entities: [],
+        activeMatches: [],
+        matchHistory: [],
+        matchCounter: 1,
+        updatedAt: 0,
+      };
+      return false;
+    }
+
+    function saveLocalMirror() {
+      try {
+        localStorage.setItem('mabar_badminton_room_code', currentRoomId);
+        localStorage.setItem(getLocalStorageKey(currentRoomId), JSON.stringify(state));
+      } catch (err) {
+        console.warn('Gagal menyimpan localStorage:', err);
+      }
+    }
+
+    function updateCloudBadgeUI() {
+      const badge = document.getElementById('cloud-status-badge');
+      const roomLabel = document.getElementById('header-room-code');
+      if (roomLabel) roomLabel.textContent = currentRoomId;
+      if (!badge) return;
+
+      const map = {
+        online: {
+          dot: 'bg-[#059669] shadow-[0_0_8px_rgba(5,150,105,0.65)]',
+          text: 'Cloud Online',
+          cls: 'text-[#047857]'
+        },
+        syncing: {
+          dot: 'bg-emerald-500 animate-pulse',
+          text: 'Menyimpan ke Cloud...',
+          cls: 'text-[#059669]'
+        },
+        connecting: {
+          dot: 'bg-amber-400 animate-pulse',
+          text: 'Menghubungkan...',
+          cls: 'text-amber-700'
+        },
+        offline: {
+          dot: 'bg-slate-400',
+          text: 'Mode Lokal (Auto-Save)',
+          cls: 'text-slate-500'
+        }
+      };
+
+      const cfg = map[cloudSyncStatus] || map.offline;
+      badge.className = `inline-flex items-center gap-1.5 text-[11px] font-semibold ${cfg.cls}`;
+      badge.innerHTML = `<span class="w-2 h-2 rounded-full ${cfg.dot}"></span><span>${cfg.text}</span>`;
+    }
+
+    function persistState(skipCloudPush = false) {
+      if (!skipCloudPush) {
+        state.updatedAt = Date.now();
+      }
+      saveLocalMirror();
+
+      if (!skipCloudPush && firebaseReady && currentUser && db) {
+        cloudSyncStatus = 'syncing';
+        updateCloudBadgeUI();
+        clearTimeout(syncTimer);
+        syncTimer = setTimeout(async () => {
+          if (!firebaseReady || !currentUser || !db) return;
+          try {
+            const roomDocRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'mabar_rooms', currentRoomId);
+            await setDoc(roomDocRef, {
+              ...state,
+              roomId: currentRoomId,
+              lastUpdatedBy: currentUser.uid,
+            });
+            cloudSyncStatus = 'online';
+            updateCloudBadgeUI();
+          } catch (err) {
+            console.error('Firebase sync error:', err);
+            cloudSyncStatus = 'offline';
+            updateCloudBadgeUI();
+          }
+        }, 250);
+      }
+    }
+
+    async function initFirebaseCloud() {
+      updateCloudBadgeUI();
+      if (!FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey) {
+        cloudSyncStatus = 'offline';
+        updateCloudBadgeUI();
+        return;
+      }
+
+      try {
+        const app = initializeApp(FIREBASE_CONFIG);
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        // Auth FIRST before any Firestore operation
+        if (INITIAL_AUTH_TOKEN) {
+          const cred = await signInWithCustomToken(auth, INITIAL_AUTH_TOKEN);
+          currentUser = cred.user;
+        } else {
+          const cred = await signInAnonymously(auth);
+          currentUser = cred.user;
+        }
+
+        if (!currentUser) {
+          cloudSyncStatus = 'offline';
+          updateCloudBadgeUI();
+          return;
+        }
+
+        firebaseReady = true;
+        subscribeToCloudRoom(currentRoomId);
+      } catch (err) {
+        console.error('Firebase init failed, fallback to localStorage:', err);
+        firebaseReady = false;
+        cloudSyncStatus = 'offline';
+        updateCloudBadgeUI();
+      }
+    }
+
+    function subscribeToCloudRoom(roomId) {
+      if (unsubscribeRoom) {
+        unsubscribeRoom();
+        unsubscribeRoom = null;
+      }
+      if (!firebaseReady || !currentUser || !db) return;
+
+      cloudSyncStatus = 'connecting';
+      updateCloudBadgeUI();
+
+      // Strict public data path: /artifacts/{appId}/public/data/mabar_rooms/{roomId}
+      const roomDocRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'mabar_rooms', roomId);
+
+      unsubscribeRoom = onSnapshot(
+        roomDocRef,
+        (snap) => {
+          cloudSyncStatus = 'online';
+          updateCloudBadgeUI();
+
+          if (snap.exists()) {
+            const remote = snap.data();
+            const remoteUpdatedAt = Number(remote?.updatedAt || 0);
+            const hasLocalData = state.entities.length > 0 || state.matchHistory.length > 0 || state.activeMatches.length > 0;
+
+            if (remoteUpdatedAt > state.updatedAt || (!hasLocalData && remote)) {
+              state = sanitizeState(remote);
+              saveLocalMirror();
+              renderAll();
+            }
+          } else {
+            if (state.entities.length > 0 || state.matchHistory.length > 0 || state.activeMatches.length > 0) {
+              persistState(false);
+            }
+          }
+        },
+        (error) => {
+          console.error('Firestore onSnapshot error:', error);
+          cloudSyncStatus = 'offline';
+          updateCloudBadgeUI();
+        }
+      );
+    }
+
+    // =========================================================================
+    // 4. SET VALIDATION & MATCH SCORING ENGINE
+    // =========================================================================
+    function validateSetScore(rawA, rawB, targetScore, deuceEnabled, allowDrawForSingleSet = false) {
+      if (rawA === '' || rawB === '' || rawA === null || rawB === null || rawA === undefined || rawB === undefined) {
+        return { valid: false, complete: false, winner: null, reason: 'Belum diisi' };
+      }
+      const a = Number(rawA);
+      const b = Number(rawB);
+      if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0) {
+        return { valid: false, complete: true, winner: null, reason: 'Skor harus angka bulat positif' };
+      }
+      if (a === b) {
+        if (allowDrawForSingleSet && !deuceEnabled && a > 0) {
+          return { valid: true, complete: true, winner: 'D', a, b, reason: `Sah (Seri ${a}-${b})` };
+        }
+        return { valid: false, complete: true, winner: null, reason: 'Skor dalam 1 set tidak boleh seri' };
+      }
+
+      const max = Math.max(a, b);
+      const min = Math.min(a, b);
+      const diff = max - min;
+      const winner = a > b ? 'A' : 'B';
+
+      if (!deuceEnabled) {
+        if (max === targetScore && min < targetScore) {
+          return { valid: true, complete: true, winner, a, b, reason: `Sah (Target ${targetScore}, Deuce OFF)` };
+        }
+        return {
+          valid: false,
+          complete: true,
+          winner: null,
+          reason: `Deuce OFF: Pemenang set harus tepat ${targetScore} poin (misal ${targetScore}-${Math.min(min, targetScore - 1)})`
+        };
+      }
+
+      // Deuce ON: wajib unggul 2 poin mulai (target-1)-(target-1), cap = 30 untuk target 21 atau target + 9
+      const cap = targetScore === 21 ? 30 : Math.min(99, targetScore + 9);
+      if (max < targetScore) {
+        return {
+          valid: false,
+          complete: true,
+          winner: null,
+          reason: `Belum mencapai target ${targetScore} poin`
+        };
+      }
+      if (max === targetScore) {
+        if (min <= targetScore - 2) {
+          return { valid: true, complete: true, winner, a, b, reason: `Sah (Target ${targetScore})` };
+        }
+        return {
+          valid: false,
+          complete: true,
+          winner: null,
+          reason: `Deuce ON: Mulai ${targetScore - 1}-${targetScore - 1} harus unggul 2 poin (maks ${cap})`
+        };
+      }
+      if (max > targetScore && max < cap) {
+        if (diff === 2 && min >= targetScore - 1) {
+          return { valid: true, complete: true, winner, a, b, reason: `Sah (Menang Deuce ${max}-${min})` };
+        }
+        return {
+          valid: false,
+          complete: true,
+          winner: null,
+          reason: `Skor deuce harus unggul tepat 2 poin (misal ${min + 2}-${min}, maks ${cap})`
+        };
+      }
+      if (max === cap) {
+        if (min === cap - 1 || min === cap - 2) {
+          return { valid: true, complete: true, winner, a, b, reason: `Sah (Batas Maksimal Deuce ${cap})` };
+        }
+        return {
+          valid: false,
+          complete: true,
+          winner: null,
+          reason: `Skor cap ${cap} hanya sah pada ${cap}-${cap - 2} atau ${cap}-${cap - 1}`
+        };
+      }
+      return {
+        valid: false,
+        complete: true,
+        winner: null,
+        reason: `Melebihi batas maksimal deuce (${cap} poin)`
+      };
+    }
+
+    function evaluateMatchScores(rawSets, setCount, targetScore, deuceEnabled) {
+      const sCount = [1, 2, 3].includes(Number(setCount)) ? Number(setCount) : 2;
+      const setResults = [];
+      let setsWonA = 0;
+      let setsWonB = 0;
+      let totalA = 0;
+      let totalB = 0;
+      let needsSet3 = false;
+      let isValidMatch = true;
+      let firstError = '';
+
+      if (sCount === 1) {
+        const r1 = validateSetScore(rawSets[0]?.a, rawSets[0]?.b, targetScore, deuceEnabled, true);
+        setResults.push({ ...r1, setNum: 1, skipped: false });
+        if (!r1.valid) {
+          isValidMatch = false;
+          firstError = `Set 1: ${r1.reason}`;
+        } else {
+          totalA = r1.a;
+          totalB = r1.b;
+          if (r1.winner === 'A') setsWonA = 1;
+          else if (r1.winner === 'B') setsWonB = 1;
+        }
+      } else if (sCount === 2) {
+        for (let i = 0; i < 2; i++) {
+          const r = validateSetScore(rawSets[i]?.a, rawSets[i]?.b, targetScore, deuceEnabled, false);
+          setResults.push({ ...r, setNum: i + 1, skipped: false });
+          if (!r.valid) {
+            isValidMatch = false;
+            if (!firstError) firstError = `Set ${i + 1}: ${r.reason}`;
+          } else {
+            totalA += r.a;
+            totalB += r.b;
+            if (r.winner === 'A') setsWonA++;
+            else setsWonB++;
+          }
+        }
+      } else {
+        // 3 Set (Best of 3)
+        const r1 = validateSetScore(rawSets[0]?.a, rawSets[0]?.b, targetScore, deuceEnabled, false);
+        const r2 = validateSetScore(rawSets[1]?.a, rawSets[1]?.b, targetScore, deuceEnabled, false);
+        setResults.push({ ...r1, setNum: 1, skipped: false });
+        setResults.push({ ...r2, setNum: 2, skipped: false });
+
+        if (r1.valid) {
+          totalA += r1.a;
+          totalB += r1.b;
+          if (r1.winner === 'A') setsWonA++;
+          else setsWonB++;
+        } else {
+          isValidMatch = false;
+          firstError = `Set 1: ${r1.reason}`;
+        }
+
+        if (r2.valid) {
+          totalA += r2.a;
+          totalB += r2.b;
+          if (r2.winner === 'A') setsWonA++;
+          else setsWonB++;
+        } else {
+          isValidMatch = false;
+          if (!firstError) firstError = `Set 2: ${r2.reason}`;
+        }
+
+        if (r1.valid && r2.valid) {
+          if (setsWonA === 2 || setsWonB === 2) {
+            needsSet3 = false;
+            setResults.push({ valid: true, complete: false, winner: null, setNum: 3, skipped: true, reason: 'Tidak diperlukan (Menang 2-0)' });
+          } else {
+            needsSet3 = true;
+            const r3 = validateSetScore(rawSets[2]?.a, rawSets[2]?.b, targetScore, deuceEnabled, false);
+            setResults.push({ ...r3, setNum: 3, skipped: false });
+            if (r3.valid) {
+              totalA += r3.a;
+              totalB += r3.b;
+              if (r3.winner === 'A') setsWonA++;
+              else setsWonB++;
+            } else {
+              isValidMatch = false;
+              if (!firstError) firstError = `Set 3: ${r3.reason}`;
+            }
+          }
+        } else {
+          needsSet3 = false;
+          setResults.push({ valid: false, complete: false, winner: null, setNum: 3, skipped: true, reason: 'Menunggu hasil Set 1 & 2' });
+        }
+      }
+
+      let winner = null;
+      if (isValidMatch) {
+        if (sCount === 3) {
+          winner = setsWonA > setsWonB ? 'A' : setsWonB > setsWonA ? 'B' : 'D';
+        } else {
+          winner = totalA > totalB ? 'A' : totalB > totalA ? 'B' : 'D';
+        }
+      }
+
+      return {
+        isValidMatch,
+        firstError,
+        setResults,
+        setsWonA,
+        setsWonB,
+        totalA,
+        totalB,
+        needsSet3,
+        winner,
+      };
+    }
+
+    // =========================================================================
+    // 5. CORE ENGINE: recalculateStats() — DYNAMIC WILDCARD & LEADERBOARD
+    // =========================================================================
+    function recalculateStats() {
+      const maxMatches = state.settings.maxMatches;
+      const entityMap = new Map();
+      const statsMap = new Map();
+
+      state.entities.forEach(ent => {
+        entityMap.set(ent.id, ent);
+        statsMap.set(ent.id, {
+          entity: ent,
+          regularPlayed: 0,
+          inProgressRegular: 0,
+          wildcardPlayed: 0,
+          inProgressWildcard: 0,
+          completedCount: 0,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          pf: 0,
+          pa: 0,
+          pd: 0,
+          isPlaying: false,
+          status: 'available', // 'available' | 'playing' | 'finished' | 'left'
+          lastPartners: new Set(),
+          lastOpponents: new Set(),
+        });
+      });
+
+      // 1. Replay matchHistory secara kronologis dari awal (oldest -> newest)
+      const chronologicalHistory = [...state.matchHistory].sort((a, b) => {
+        if (a.startTime !== b.startTime) return a.startTime - b.startTime;
+        if (a.matchNumber !== b.matchNumber) return a.matchNumber - b.matchNumber;
+        return a.id.localeCompare(b.id);
+      });
+
+      const computedHistoryMap = new Map();
+
+      chronologicalHistory.forEach(match => {
+        const sets = Array.isArray(match.sets) ? match.sets : [];
+        let totalA = 0;
+        let totalB = 0;
+        let setsWonA = 0;
+        let setsWonB = 0;
+
+        sets.forEach(s => {
+          const sa = Number(s.a || 0);
+          const sb = Number(s.b || 0);
+          totalA += sa;
+          totalB += sb;
+          if (sa > sb) setsWonA++;
+          else if (sb > sa) setsWonB++;
+        });
+
+        let winner = 'D';
+        if (match.setCount === 3) {
+          if (setsWonA > setsWonB) winner = 'A';
+          else if (setsWonB > setsWonA) winner = 'B';
+          else winner = totalA > totalB ? 'A' : totalB > totalA ? 'B' : 'D';
+        } else {
+          if (totalA > totalB) winner = 'A';
+          else if (totalB > totalA) winner = 'B';
+          else winner = 'D';
+        }
+
+        const evalHistSlot = (id, teamSide) => {
+          const st = statsMap.get(id);
+          const ent = entityMap.get(id);
+          let isWildcard = false;
+          if (st) {
+            if (st.regularPlayed < maxMatches) {
+              isWildcard = false;
+              st.regularPlayed += 1;
+              st.pf += (teamSide === 'A' ? totalA : totalB);
+              st.pa += (teamSide === 'A' ? totalB : totalA);
+              if (winner === teamSide) st.wins += 1;
+              else if (winner === 'D') st.draws += 1;
+              else st.losses += 1;
+            } else {
+              isWildcard = true;
+              st.wildcardPlayed += 1;
+            }
+            st.completedCount += 1;
+          }
+          return {
+            id,
+            name: ent ? ent.name : 'Peserta Dihapus',
+            subName: ent && ent.teamName && ent.player1 && ent.player2 ? `${ent.player1} / ${ent.player2}` : '',
+            isWildcard,
+          };
+        };
+
+        const teamASlots = (match.teamA || []).map(id => evalHistSlot(id, 'A'));
+        const teamBSlots = (match.teamB || []).map(id => evalHistSlot(id, 'B'));
+
+        // Catat riwayat partner (Mix) & lawan untuk Smart Matchmaking
+        if (match.mode === 'individual') {
+          if (match.teamA.length === 2) {
+            statsMap.get(match.teamA[0])?.lastPartners.add(match.teamA[1]);
+            statsMap.get(match.teamA[1])?.lastPartners.add(match.teamA[0]);
+          }
+          if (match.teamB.length === 2) {
+            statsMap.get(match.teamB[0])?.lastPartners.add(match.teamB[1]);
+            statsMap.get(match.teamB[1])?.lastPartners.add(match.teamB[0]);
+          }
+        }
+        (match.teamA || []).forEach(idA => {
+          (match.teamB || []).forEach(idB => {
+            statsMap.get(idA)?.lastOpponents.add(idB);
+            statsMap.get(idB)?.lastOpponents.add(idA);
+          });
+        });
+
+        computedHistoryMap.set(match.id, {
+          ...match,
+          teamASlots,
+          teamBSlots,
+          totalA,
+          totalB,
+          setsWonA,
+          setsWonB,
+          winner,
+        });
+      });
+
+      // 2. Proses activeMatches secara kronologis
+      const chronologicalActive = [...state.activeMatches].sort((a, b) => {
+        if (a.startTime !== b.startTime) return a.startTime - b.startTime;
+        return a.matchNumber - b.matchNumber;
+      });
+
+      const computedActiveMap = new Map();
+
+      chronologicalActive.forEach(match => {
+        const evalActiveTeam = (ids) => (ids || []).map(id => {
+          const st = statsMap.get(id);
+          const ent = entityMap.get(id);
+          let isWildcard = false;
+          if (st) {
+            st.isPlaying = true;
+            if ((st.regularPlayed + st.inProgressRegular) < maxMatches) {
+              isWildcard = false;
+              st.inProgressRegular += 1;
+            } else {
+              isWildcard = true;
+              st.inProgressWildcard += 1;
+            }
+          }
+          return {
+            id,
+            name: ent ? ent.name : 'Peserta',
+            subName: ent && ent.teamName && ent.player1 && ent.player2 ? `${ent.player1} / ${ent.player2}` : '',
+            isWildcard,
+          };
+        });
+
+        computedActiveMap.set(match.id, {
+          ...match,
+          teamASlots: evalActiveTeam(match.teamA),
+          teamBSlots: evalActiveTeam(match.teamB),
+        });
+      });
+
+      // 3. Hitung PD dan status akhir tiap entitas
+      let countAvailable = 0;
+      let countPlaying = 0;
+      let countFinished = 0;
+      let countLeft = 0;
+
+      statsMap.forEach(st => {
+        st.pd = st.pf - st.pa;
+        if (st.isPlaying) {
+          st.status = 'playing';
+          countPlaying++;
+        } else if (st.entity.isLeft) {
+          st.status = 'left';
+          countLeft++;
+        } else if (st.regularPlayed >= maxMatches) {
+          st.status = 'finished';
+          countFinished++;
+        } else {
+          st.status = 'available';
+          countAvailable++;
+        }
+      });
+
+      // 4. Urutkan Klasemen (1. Menang W, 2. Selisih PD, 3. Total Poin Masuk PF)
+      const leaderboard = Array.from(statsMap.values()).sort((a, b) => {
+        if (b.wins !== a.wins) return b.wins - a.wins;
+        if (b.pd !== a.pd) return b.pd - a.pd;
+        if (b.pf !== a.pf) return b.pf - a.pf;
+        return a.entity.name.localeCompare(b.entity.name, 'id');
+      });
+
+      const historyNewestFirst = [...state.matchHistory]
+        .sort((a, b) => {
+          if (b.endTime !== a.endTime) return b.endTime - a.endTime;
+          return b.matchNumber - a.matchNumber;
+        })
+        .map(m => computedHistoryMap.get(m.id));
+
+      const activeList = state.activeMatches.map(m => computedActiveMap.get(m.id));
+
+      return {
+        statsMap,
+        leaderboard,
+        historyNewestFirst,
+        activeList,
+        counts: {
+          total: state.entities.length,
+          available: countAvailable,
+          playing: countPlaying,
+          finished: countFinished,
+          left: countLeft,
+        }
+      };
+    }
+
+    function getSuggestedCourtName() {
+      const usedCourts = new Set(state.activeMatches.map(m => m.court.trim().toLowerCase()));
+      for (let i = 1; i <= 20; i++) {
+        const candidate = `Court ${i}`;
+        if (!usedCourts.has(candidate.toLowerCase())) {
+          return candidate;
+        }
+      }
+      return `Court ${state.activeMatches.length + 1}`;
+    }
+
+    // =========================================================================
+    // 6. INLINE SETTINGS CONTROLLERS (NO POPUP MODAL)
+    // =========================================================================
+    window.switchGameMode = function (newMode) {
+      if (!VALID_MODES.includes(newMode) || state.settings.mode === newMode) return;
+      if (state.activeMatches.length > 0) {
+        showToast('Selesaikan atau batalkan Active Match terlebih dahulu sebelum mengganti Mode Permainan.', 'warning');
+        return;
+      }
+
+      const targetMeta = getModeMeta(newMode);
+      const applySwitch = () => {
+        state.settings.mode = newMode;
+        uiState.draftMatch = null;
+        uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+        persistState();
+        renderAll();
+        showToast(`Mode Permainan diubah ke ${targetMeta.label}.`, 'success');
+      };
+
+      if (state.entities.length > 0) {
+        showConfirmModal({
+          title: 'Ganti Mode Permainan?',
+          message: `Saat ini sudah ada ${state.entities.length} data terdaftar. Yakin ingin beralih ke mode ${targetMeta.label}?`,
+          confirmLabel: 'Ya, Ganti Mode',
+          confirmStyle: 'primary',
+          onConfirm: applySwitch,
+        });
+      } else {
+        applySwitch();
+      }
+    };
+
+    window.adjustMaxMatches = function (delta) {
+      const current = state.settings.maxMatches;
+      const next = Math.max(1, Math.min(20, current + delta));
+      if (next === current) return;
+
+      state.settings.maxMatches = next;
+      uiState.draftMatch = null;
+      uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+      persistState();
+      renderAll();
+      showToast(
+        `Kuota diubah menjadi ${next}× Main! Status Wildcard & poin Klasemen otomatis dihitung ulang.`,
+        'success'
+      );
+    };
+
+    window.changeSetFormat = function (val) {
+      const parsed = Number(val);
+      if (![1, 2, 3].includes(parsed)) return;
+      state.settings.setCount = parsed;
+      persistState();
+      renderAll();
+      const label = parsed === 1 ? '1 Set' : parsed === 2 ? '2 Set (Total Poin)' : '3 Set (Best of 3)';
+      showToast(`Format Set diatur ke ${label} (otomatis berlaku untuk match berikutnya).`, 'info');
+    };
+
+    window.changeTargetScore = function (val) {
+      const parsed = Math.max(5, Math.min(99, parseInt(val, 10) || 21));
+      state.settings.targetScore = parsed;
+      persistState();
+      renderAll();
+      showToast(`Target skor diatur ke ${parsed} Poin per set.`, 'info');
+    };
+
+    window.toggleDeuceSetting = function () {
+      state.settings.deuceEnabled = !state.settings.deuceEnabled;
+      persistState();
+      renderAll();
+      showToast(
+        state.settings.deuceEnabled
+          ? 'Aturan Deuce diaktifkan (ON) — wajib unggul 2 poin saat deuce.'
+          : 'Aturan Deuce dimatikan (OFF) — pemenang set tepat di skor target.',
+        'info'
+      );
+    };
+
+    // =========================================================================
+    // 7. SMART MATCHMAKING ALGORITHM (STAGING DRAFT — INDIVIDUAL, PAIR & SINGLE)
+    // =========================================================================
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function getEntityRating(st) {
+      return (st.wins * 100) + (st.pd * 2) + (st.pf * 0.15);
+    }
+
+    window.generateSmartAutoMatch = function () {
+      const derived = recalculateStats();
+      const meta = getModeMeta();
+      const requiredSlots = meta.requiredSlots;
+      const isOnePerSide = meta.perSide === 1;
+
+      const availableList = Array.from(derived.statsMap.values()).filter(st => st.status === 'available');
+      const finishedList = Array.from(derived.statsMap.values()).filter(st => st.status === 'finished');
+
+      if (availableList.length === 0 && !uiState.allowWildcard) {
+        showToast(`Tidak ada ${meta.entityNounLower} Tersedia. Aktifkan toggle Wildcard jika ingin bermain tambahan.`, 'warning');
+        return;
+      }
+
+      let chosen = [];
+
+      if (availableList.length >= requiredSlots) {
+        // Kelompokkan berdasarkan jumlah main reguler paling sedikit (0 < 1 < 2 ...)
+        const buckets = new Map();
+        availableList.forEach(st => {
+          const key = st.regularPlayed;
+          if (!buckets.has(key)) buckets.set(key, []);
+          buckets.get(key).push(st);
+        });
+        const sortedCounts = Array.from(buckets.keys()).sort((a, b) => a - b);
+
+        for (const cnt of sortedCounts) {
+          const group = buckets.get(cnt);
+          const remainingNeed = requiredSlots - chosen.length;
+          if (remainingNeed <= 0) break;
+
+          if (group.length <= remainingNeed) {
+            chosen.push(...shuffleArray(group));
+          } else {
+            const hasPoints = group.some(st => st.completedCount > 0);
+            if (!hasPoints) {
+              chosen.push(...shuffleArray(group).slice(0, remainingNeed));
+            } else {
+              const shuffled = shuffleArray(group);
+              const anchor = shuffled[0];
+              const anchorRating = getEntityRating(anchor);
+              const restScored = shuffled.slice(1).map(st => {
+                let penalty = Math.abs(getEntityRating(st) - anchorRating) + (Math.random() * 48);
+                if (isOnePerSide && anchor.lastOpponents.has(st.entity.id)) {
+                  penalty += 65; // Hindari rematch berulang bila masih ada lawan lain
+                }
+                const pairSig = [anchor.entity.id, st.entity.id].sort().join('VS');
+                if (isOnePerSide && pairSig === uiState.lastAutoSignature) {
+                  penalty += 80;
+                }
+                return { st, penalty };
+              }).sort((a, b) => a.penalty - b.penalty);
+
+              chosen.push(anchor, ...restScored.slice(0, remainingNeed - 1).map(x => x.st));
+            }
+          }
+        }
+      } else {
+        if (!uiState.allowWildcard) {
+          showToast(
+            `${meta.entityNoun} Tersedia tinggal ${availableList.length} (butuh ${requiredSlots}). Aktifkan toggle Wildcard terlebih dahulu!`,
+            'warning'
+          );
+          return;
+        }
+        const totalPool = availableList.length + finishedList.length;
+        if (totalPool < requiredSlots) {
+          showToast(
+            `Total ${meta.entityNounLower} siap (Tersedia + Selesai) baru ${totalPool}, belum cukup untuk ${requiredSlots} slot.`,
+            'error'
+          );
+          return;
+        }
+
+        // WAJIB masukkan seluruh entitas Tersedia terlebih dahulu
+        chosen.push(...shuffleArray(availableList));
+
+        // Lengkapi slot yang kurang secara acak dari Selesai (prioritas wildcardPlayed paling sedikit)
+        const needWildcard = requiredSlots - chosen.length;
+        const wcSorted = shuffleArray(finishedList).sort((a, b) => a.wildcardPlayed - b.wildcardPlayed);
+        chosen.push(...wcSorted.slice(0, needWildcard));
+      }
+
+      let teamA = [];
+      let teamB = [];
+      const anyPlayed = chosen.some(st => st.completedCount > 0);
+
+      if (isOnePerSide) {
+        const shuffledTwo = shuffleArray(chosen);
+        teamA = [shuffledTwo[0].entity.id];
+        teamB = [shuffledTwo[1].entity.id];
+        uiState.lastAutoSignature = [teamA[0], teamB[0]].sort().join('VS');
+      } else {
+        if (!anyPlayed) {
+          const s = shuffleArray(chosen);
+          teamA = [s[0].entity.id, s[1].entity.id];
+          teamB = [s[2].entity.id, s[3].entity.id];
+          uiState.lastAutoSignature = [
+            [teamA[0], teamA[1]].sort().join('+'),
+            [teamB[0], teamB[1]].sort().join('+')
+          ].sort().join('VS');
+        } else {
+          const combos = [
+            { a: [chosen[0], chosen[1]], b: [chosen[2], chosen[3]] },
+            { a: [chosen[0], chosen[2]], b: [chosen[1], chosen[3]] },
+            { a: [chosen[0], chosen[3]], b: [chosen[1], chosen[2]] },
+          ];
+
+          const scoredCombos = combos.map(c => {
+            const sumA = getEntityRating(c.a[0]) + getEntityRating(c.a[1]);
+            const sumB = getEntityRating(c.b[0]) + getEntityRating(c.b[1]);
+            let penalty = Math.abs(sumA - sumB);
+            if (c.a[0].lastPartners.has(c.a[1].entity.id)) penalty += 38;
+            if (c.b[0].lastPartners.has(c.b[1].entity.id)) penalty += 38;
+            penalty += Math.random() * 26;
+
+            const sig = [
+              [c.a[0].entity.id, c.a[1].entity.id].sort().join('+'),
+              [c.b[0].entity.id, c.b[1].entity.id].sort().join('+')
+            ].sort().join('VS');
+
+            if (sig === uiState.lastAutoSignature) penalty += 65;
+
+            return { c, penalty, sig };
+          }).sort((x, y) => x.penalty - y.penalty);
+
+          const best = scoredCombos[0];
+          uiState.lastAutoSignature = best.sig;
+          teamA = best.c.a.map(x => x.entity.id);
+          teamB = best.c.b.map(x => x.entity.id);
+        }
+      }
+
+      const prevCourt = uiState.draftMatch?.court;
+      uiState.draftMatch = {
+        teamA,
+        teamB,
+        court: prevCourt || getSuggestedCourtName(),
+        source: 'auto',
+      };
+
+      renderAll();
+      showToast(
+        anyPlayed
+          ? 'Draft match seimbang berdasarkan klasemen siap! Klik "Acak Ulang" atau "Mulai Match".'
+          : 'Draft match acak siap! Periksa susunan lalu klik "Mulai Match (Start)".',
+        'info'
+      );
+    };
+
+    window.handleManualSlotChange = function (slotKey, value) {
+      uiState.manualSlots[slotKey] = value;
+
+      const meta = getModeMeta();
+      const isOnePerSide = meta.perSide === 1;
+      const slots = isOnePerSide
+        ? [uiState.manualSlots.a1, uiState.manualSlots.b1]
+        : [uiState.manualSlots.a1, uiState.manualSlots.a2, uiState.manualSlots.b1, uiState.manualSlots.b2];
+
+      const filled = slots.filter(Boolean);
+      if (new Set(filled).size !== filled.length) {
+        uiState.manualSlots[slotKey] = '';
+        showToast(`${meta.entityNoun} yang sama tidak boleh dipilih di lebih dari 1 slot!`, 'error');
+        renderAll();
+        return;
+      }
+
+      if (filled.length === slots.length) {
+        uiState.draftMatch = {
+          teamA: isOnePerSide ? [uiState.manualSlots.a1] : [uiState.manualSlots.a1, uiState.manualSlots.a2],
+          teamB: isOnePerSide ? [uiState.manualSlots.b1] : [uiState.manualSlots.b1, uiState.manualSlots.b2],
+          court: uiState.draftMatch?.court || getSuggestedCourtName(),
+          source: 'manual',
+        };
+      } else if (uiState.draftMatch && uiState.draftMatch.source === 'manual') {
+        uiState.draftMatch = null;
+      }
+
+      renderAll();
+    };
+
+    window.updateDraftCourt = function (val) {
+      if (uiState.draftMatch) {
+        uiState.draftMatch.court = val;
+      }
+    };
+
+    window.clearDraftMatch = function () {
+      uiState.draftMatch = null;
+      uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+      renderAll();
+    };
+
+    window.startDraftMatch = function () {
+      if (!uiState.draftMatch) {
+        showToast('Belum ada draft pertandingan. Silakan Acak Otomatis atau Pilih Manual dulu.', 'warning');
+        return;
+      }
+
+      const derived = recalculateStats();
+      const allIds = [...uiState.draftMatch.teamA, ...uiState.draftMatch.teamB];
+
+      if (new Set(allIds).size !== allIds.length) {
+        showToast('Terdapat peserta ganda dalam satu match!', 'error');
+        return;
+      }
+
+      for (const id of allIds) {
+        const st = derived.statsMap.get(id);
+        if (!st) {
+          showToast('Salah satu peserta sudah tidak ada. Silakan buat ulang draft.', 'error');
+          uiState.draftMatch = null;
+          renderAll();
+          return;
+        }
+        if (st.status === 'playing') {
+          showToast(`"${st.entity.name}" sedang bermain di lapangan lain!`, 'error');
+          return;
+        }
+        if (st.status === 'left') {
+          showToast(`"${st.entity.name}" sudah pulang / non-aktif!`, 'error');
+          return;
+        }
+        if (st.status === 'finished' && !uiState.allowWildcard) {
+          showToast(`"${st.entity.name}" sudah selesai kuota. Aktifkan Wildcard terlebih dahulu.`, 'warning');
+          return;
+        }
+      }
+
+      const courtName = (uiState.draftMatch.court || '').trim() || getSuggestedCourtName();
+      const setCount = state.settings.setCount;
+      const newMatch = {
+        id: generateId(),
+        matchNumber: state.matchCounter++,
+        court: courtName,
+        mode: state.settings.mode,
+        setCount,
+        targetScore: state.settings.targetScore,
+        deuceEnabled: state.settings.deuceEnabled,
+        teamA: [...uiState.draftMatch.teamA],
+        teamB: [...uiState.draftMatch.teamB],
+        scores: Array.from({ length: setCount }, () => ({ a: '', b: '' })),
+        startTime: Date.now(),
+      };
+
+      state.activeMatches.push(newMatch);
+      uiState.draftMatch = null;
+      uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+
+      persistState();
+      renderAll();
+      showToast(`Match #${newMatch.matchNumber} (${newMatch.court}) dimulai pukul ${formatClock(newMatch.startTime, true)}!`, 'success');
+    };
+
+    // =========================================================================
+    // 8. ACTIVE MATCH QUICK SCORE CONTROLS (-, +, TARGET) & SUBMIT
+    // =========================================================================
+    window.handleActiveScoreInput = function (matchId, setIndex, side, value) {
+      const match = state.activeMatches.find(m => m.id === matchId);
+      if (!match) return;
+      const cleaned = value === '' ? '' : String(Math.max(0, Math.min(99, parseInt(value, 10) || 0)));
+      if (!match.scores[setIndex]) match.scores[setIndex] = { a: '', b: '' };
+      match.scores[setIndex][side] = cleaned;
+
+      updateActiveMatchLiveUI(matchId);
+      persistState();
+    };
+
+    window.stepActiveScore = function (matchId, setIndex, side, delta) {
+      const match = state.activeMatches.find(m => m.id === matchId);
+      if (!match) return;
+      if (!match.scores[setIndex]) match.scores[setIndex] = { a: '', b: '' };
+      const curRaw = match.scores[setIndex][side];
+      const curNum = curRaw === '' ? 0 : (parseInt(curRaw, 10) || 0);
+      const nextNum = Math.max(0, Math.min(99, curNum + delta));
+      match.scores[setIndex][side] = String(nextNum);
+
+      const inputEl = document.getElementById(`active-score-input-${matchId}-${setIndex}-${side}`);
+      if (inputEl) inputEl.value = String(nextNum);
+
+      updateActiveMatchLiveUI(matchId);
+      persistState();
+    };
+
+    window.setQuickTargetActiveScore = function (matchId, setIndex, side) {
+      const match = state.activeMatches.find(m => m.id === matchId);
+      if (!match) return;
+      if (!match.scores[setIndex]) match.scores[setIndex] = { a: '', b: '' };
+      const targetVal = String(match.targetScore || 21);
+      match.scores[setIndex][side] = targetVal;
+
+      const inputEl = document.getElementById(`active-score-input-${matchId}-${setIndex}-${side}`);
+      if (inputEl) inputEl.value = targetVal;
+
+      updateActiveMatchLiveUI(matchId);
+      persistState();
+    };
+
+    function updateActiveMatchLiveUI(matchId) {
+      const match = state.activeMatches.find(m => m.id === matchId);
+      if (!match) return;
+
+      const mMeta = getModeMeta(match.mode);
+      const evalRes = evaluateMatchScores(match.scores, match.setCount, match.targetScore, match.deuceEnabled);
+
+      evalRes.setResults.forEach((sr, idx) => {
+        const hintEl = document.getElementById(`active-set-hint-${matchId}-${idx}`);
+        if (hintEl) {
+          if (sr.skipped) {
+            hintEl.textContent = sr.reason;
+            hintEl.className = 'text-[11px] font-semibold text-slate-400 text-right';
+          } else if (!sr.complete) {
+            hintEl.textContent = `Target ${match.targetScore} (${match.deuceEnabled ? 'Deuce ON' : 'Deuce OFF'})`;
+            hintEl.className = 'text-[11px] font-medium text-slate-500 text-right';
+          } else if (sr.valid) {
+            const sideWin = sr.winner === 'A' ? mMeta.sideALabel : mMeta.sideBLabel;
+            hintEl.textContent = sr.winner === 'D' ? `✓ Set ${idx + 1} Seri` : `✓ ${sideWin} Menang Set ${idx + 1}`;
+            hintEl.className = 'text-[11px] font-bold text-[#047857] text-right';
+          } else {
+            hintEl.textContent = `⚠ ${sr.reason}`;
+            hintEl.className = 'text-[11px] font-bold text-amber-700 text-right';
+          }
+        }
+      });
+
+      const set3Row = document.getElementById(`active-set3-row-${matchId}`);
+      const bestOf3Banner = document.getElementById(`active-bo3-banner-${matchId}`);
+      if (match.setCount === 3) {
+        if (set3Row) {
+          if (evalRes.needsSet3) set3Row.classList.remove('hidden');
+          else set3Row.classList.add('hidden');
+        }
+        if (bestOf3Banner) {
+          if (evalRes.setsWonA === 2 || evalRes.setsWonB === 2) {
+            const winSide = evalRes.setsWonA === 2 ? mMeta.sideALabel : mMeta.sideBLabel;
+            bestOf3Banner.classList.remove('hidden');
+            bestOf3Banner.textContent = `Match Selesai (2-0) — ${winSide} Menang! Set 3 tidak diperlukan.`;
+          } else if (evalRes.needsSet3) {
+            bestOf3Banner.classList.remove('hidden');
+            bestOf3Banner.textContent = `Kedudukan Set 1-1! Rubber Set (Set 3) otomatis dibuka.`;
+          } else {
+            bestOf3Banner.classList.add('hidden');
+          }
+        }
+      }
+
+      const previewEl = document.getElementById(`active-match-preview-${matchId}`);
+      if (previewEl) {
+        if (evalRes.isValidMatch) {
+          const winText = evalRes.winner === 'A'
+            ? `${mMeta.sideALabel} Menang`
+            : evalRes.winner === 'B'
+              ? `${mMeta.sideBLabel} Menang`
+              : 'Hasil Seri (Draw)';
+          previewEl.className = 'text-xs font-bold text-[#047857] bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2';
+          previewEl.innerHTML = `
+            <span>✓ Siap Disimpan: ${winText}</span>
+            <span class="scoreboard-digits font-mono font-extrabold">Total ${evalRes.totalA} - ${evalRes.totalB}</span>
+          `;
+        } else {
+          previewEl.className = 'text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2';
+          previewEl.innerHTML = `
+            <span>${escapeHTML(evalRes.firstError || 'Masukkan skor yang sah untuk menyelesaikan match.')}</span>
+            <span class="scoreboard-digits font-mono font-bold text-slate-700">${evalRes.totalA} - ${evalRes.totalB}</span>
+          `;
+        }
+      }
+    }
+
+    window.submitActiveMatchScore = function (matchId) {
+      const idx = state.activeMatches.findIndex(m => m.id === matchId);
+      if (idx === -1) return;
+      const match = state.activeMatches[idx];
+
+      const evalRes = evaluateMatchScores(match.scores, match.setCount, match.targetScore, match.deuceEnabled);
+      if (!evalRes.isValidMatch) {
+        showToast(`Skor belum lengkap/sah: ${evalRes.firstError}`, 'warning');
+        return;
+      }
+
+      const playedSets = evalRes.setResults
+        .filter(sr => !sr.skipped && sr.valid)
+        .map(sr => ({ a: sr.a, b: sr.b }));
+
+      const endTime = Date.now();
+      const completedRecord = {
+        id: match.id,
+        matchNumber: match.matchNumber,
+        court: match.court,
+        mode: match.mode,
+        setCount: match.setCount,
+        targetScore: match.targetScore,
+        deuceEnabled: match.deuceEnabled,
+        teamA: [...match.teamA],
+        teamB: [...match.teamB],
+        sets: playedSets,
+        startTime: match.startTime,
+        endTime,
+      };
+
+      state.matchHistory.push(completedRecord);
+      state.activeMatches.splice(idx, 1);
+
+      persistState();
+      renderAll();
+      showToast(`Match #${match.matchNumber} selesai (${formatClock(endTime, true)}) & klasemen diperbarui!`, 'success');
+    };
+
+    window.confirmCancelActiveMatch = function (matchId) {
+      const match = state.activeMatches.find(m => m.id === matchId);
+      if (!match) return;
+
+      showConfirmModal({
+        title: `WO / Batalkan Match #${match.matchNumber} (${match.court})?`,
+        message: 'Pertandingan akan dibatalkan tanpa menyimpan skor dan status seluruh pemain dikembalikan seperti semula.',
+        confirmLabel: 'Ya, Batalkan Match',
+        confirmStyle: 'danger',
+        onConfirm: () => {
+          state.activeMatches = state.activeMatches.filter(m => m.id !== matchId);
+          persistState();
+          renderAll();
+          showToast(`Match #${match.matchNumber} dibatalkan.`, 'info');
+        }
+      });
+    };
+
+    // =========================================================================
+    // 9. PARTICIPANT MANAGEMENT (CHECK-IN, EDIT, PULANG, DELETE)
+    // =========================================================================
+    window.handleCheckInSubmit = function (event) {
+      event.preventDefault();
+      const meta = getModeMeta();
+      const isPair = meta.mode === 'fixed_pair';
+
+      let name = '';
+      let teamName = '';
+      let player1 = '';
+      let player2 = '';
+
+      if (!isPair) {
+        const input = document.getElementById('checkin-single-name');
+        name = (input?.value || '').trim().replace(/\s+/g, ' ');
+        if (!name) {
+          showToast(`Silakan ketik nama ${meta.entityNounLower} terlebih dahulu.`, 'warning');
+          input?.focus();
+          return;
+        }
+      } else {
+        const teamInput = document.getElementById('checkin-pair-team');
+        const p1Input = document.getElementById('checkin-pair-p1');
+        const p2Input = document.getElementById('checkin-pair-p2');
+
+        teamName = (teamInput?.value || '').trim().replace(/\s+/g, ' ');
+        player1 = (p1Input?.value || '').trim().replace(/\s+/g, ' ');
+        player2 = (p2Input?.value || '').trim().replace(/\s+/g, ' ');
+
+        if (!player1 || !player2) {
+          showToast('Pemain 1 dan Pemain 2 wajib diisi!', 'warning');
+          (!player1 ? p1Input : p2Input)?.focus();
+          return;
+        }
+        if (player1.toLowerCase() === player2.toLowerCase()) {
+          showToast('Nama Pemain 1 dan Pemain 2 tidak boleh sama!', 'error');
+          p2Input?.focus();
+          return;
+        }
+        name = teamName ? teamName : `${player1} / ${player2}`;
+      }
+
+      const dup = state.entities.some(e => e.name.toLowerCase() === name.toLowerCase());
+      if (dup) {
+        showToast(`"${name}" sudah terdaftar! Gunakan nama yang berbeda.`, 'error');
+        return;
+      }
+
+      state.entities.push({
+        id: generateId(),
+        name,
+        teamName,
+        player1,
+        player2,
+        isLeft: false,
+        createdAt: Date.now(),
+      });
+
+      persistState();
+      renderAll();
+      showToast(`${meta.entityNoun} "${name}" berhasil didaftarkan!`, 'success');
+
+      setTimeout(() => {
+        const nextFocus = document.getElementById(isPair ? 'checkin-pair-p1' : 'checkin-single-name');
+        if (nextFocus) nextFocus.focus();
+      }, 25);
+    };
+
+    window.toggleParticipantLeft = function (entityId) {
+      const derived = recalculateStats();
+      const st = derived.statsMap.get(entityId);
+      if (!st) return;
+
+      if (st.isPlaying) {
+        showToast(`"${st.entity.name}" sedang bermain. Selesaikan atau batalkan match dulu.`, 'warning');
+        return;
+      }
+
+      st.entity.isLeft = !st.entity.isLeft;
+
+      if (st.entity.isLeft && uiState.draftMatch) {
+        const inDraft = [...uiState.draftMatch.teamA, ...uiState.draftMatch.teamB].includes(entityId);
+        if (inDraft) {
+          uiState.draftMatch = null;
+          uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+        }
+      }
+
+      persistState();
+      renderAll();
+      showToast(
+        st.entity.isLeft
+          ? `"${st.entity.name}" ditandai Pulang (Non-Aktif). Skor klasemen tetap utuh.`
+          : `"${st.entity.name}" diaktifkan kembali dan siap bermain!`,
+        'info'
+      );
+    };
+
+    window.openEditEntityModal = function (entityId) {
+      const entity = state.entities.find(e => e.id === entityId);
+      if (!entity) return;
+
+      const meta = getModeMeta();
+      const isPair = state.settings.mode === 'fixed_pair' || Boolean(entity.player1 && entity.player2);
+
+      openModal(`
+        <div class="animate-modal bg-white border border-[#DCEAE3] rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-base font-extrabold text-slate-900">
+              Edit ${isPair ? 'Pasangan & Nama Tim' : `Nama ${meta.entityNoun}`}
+            </h3>
+            <button type="button" onclick="window.closeModal()" class="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <form onsubmit="window.submitEditEntity(event, '${entity.id}')" class="space-y-3.5">
+            ${isPair ? `
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Nama Tim (Opsional)</label>
+                <input
+                  type="text"
+                  id="edit-ent-team"
+                  value="${escapeHTML(entity.teamName || '')}"
+                  placeholder="Kosongkan untuk pakai nama kedua pemain..."
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900"
+                />
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Pemain 1 *</label>
+                  <input
+                    type="text"
+                    id="edit-ent-p1"
+                    value="${escapeHTML(entity.player1 || entity.name.split('/')[0]?.trim() || '')}"
+                    required
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Pemain 2 *</label>
+                  <input
+                    type="text"
+                    id="edit-ent-p2"
+                    value="${escapeHTML(entity.player2 || entity.name.split('/')[1]?.trim() || '')}"
+                    required
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900"
+                  />
+                </div>
+              </div>
+            ` : `
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Nama ${meta.entityNoun} *</label>
+                <input
+                  type="text"
+                  id="edit-ent-name"
+                  value="${escapeHTML(entity.name)}"
+                  required
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900"
+                />
+              </div>
+            `}
+            <p class="text-[11px] text-slate-500">
+              Perubahan otomatis sinkron ke Draft Match, Active Match, Riwayat Pertandingan, dan Klasemen Live.
+            </p>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <button type="button" onclick="window.closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
+                Batal
+              </button>
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs font-extrabold cursor-pointer shadow-sm">
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
+        </div>
+      `);
+    };
+
+    window.submitEditEntity = function (event, entityId) {
+      event.preventDefault();
+      const entity = state.entities.find(e => e.id === entityId);
+      if (!entity) return;
+
+      const p1El = document.getElementById('edit-ent-p1');
+      const p2El = document.getElementById('edit-ent-p2');
+      const teamEl = document.getElementById('edit-ent-team');
+      const nameEl = document.getElementById('edit-ent-name');
+
+      if (p1El && p2El) {
+        const p1 = p1El.value.trim().replace(/\s+/g, ' ');
+        const p2 = p2El.value.trim().replace(/\s+/g, ' ');
+        const tn = (teamEl?.value || '').trim().replace(/\s+/g, ' ');
+        if (!p1 || !p2) {
+          showToast('Pemain 1 dan Pemain 2 wajib diisi!', 'warning');
+          return;
+        }
+        if (p1.toLowerCase() === p2.toLowerCase()) {
+          showToast('Nama Pemain 1 dan Pemain 2 tidak boleh sama!', 'error');
+          return;
+        }
+        const newName = tn ? tn : `${p1} / ${p2}`;
+        const dup = state.entities.some(e => e.id !== entityId && e.name.toLowerCase() === newName.toLowerCase());
+        if (dup) {
+          showToast(`Nama "${newName}" sudah dipakai pasangan lain!`, 'error');
+          return;
+        }
+        entity.teamName = tn;
+        entity.player1 = p1;
+        entity.player2 = p2;
+        entity.name = newName;
+      } else if (nameEl) {
+        const newName = nameEl.value.trim().replace(/\s+/g, ' ');
+        if (!newName) {
+          showToast('Nama tidak boleh kosong!', 'warning');
+          return;
+        }
+        const dup = state.entities.some(e => e.id !== entityId && e.name.toLowerCase() === newName.toLowerCase());
+        if (dup) {
+          showToast(`Nama "${newName}" sudah dipakai peserta lain!`, 'error');
+          return;
+        }
+        entity.name = newName;
+      }
+
+      window.closeModal();
+      persistState();
+      renderAll();
+      showToast(`Nama berhasil diperbarui menjadi "${entity.name}".`, 'success');
+    };
+
+    window.confirmDeleteEntity = function (entityId) {
+      const derived = recalculateStats();
+      const st = derived.statsMap.get(entityId);
+      if (!st) return;
+
+      if (st.isPlaying || st.completedCount > 0) {
+        showToast('Tidak dapat dihapus karena sudah/sedang bermain (gunakan tombol Pulang).', 'warning');
+        return;
+      }
+
+      showConfirmModal({
+        title: `Hapus "${st.entity.name}"?`,
+        message: 'Data ini belum pernah bertanding dan akan dihapus permanen dari daftar hadir.',
+        confirmLabel: 'Ya, Hapus',
+        confirmStyle: 'danger',
+        onConfirm: () => {
+          state.entities = state.entities.filter(e => e.id !== entityId);
+          if (uiState.draftMatch) {
+            const inDraft = [...uiState.draftMatch.teamA, ...uiState.draftMatch.teamB].includes(entityId);
+            if (inDraft) {
+              uiState.draftMatch = null;
+              uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+            }
+          }
+          persistState();
+          renderAll();
+          showToast(`"${st.entity.name}" dihapus dari daftar hadir.`, 'info');
+        }
+      });
+    };
+
+    // =========================================================================
+    // 10. EDIT MATCH HISTORY MODAL (WITH QUICK -, +, AND TARGET SCORE BUTTON)
+    // =========================================================================
+    window.stepEditHistoryScore = function (historyId, setIdx, side, delta) {
+      const el = document.getElementById(`edit-hist-${side}-${setIdx}`);
+      if (!el) return;
+      const cur = el.value === '' ? 0 : (parseInt(el.value, 10) || 0);
+      el.value = String(Math.max(0, Math.min(99, cur + delta)));
+      window.refreshEditHistoryValidation(historyId);
+    };
+
+    window.setQuickEditHistoryScore = function (historyId, setIdx, side, targetVal) {
+      const el = document.getElementById(`edit-hist-${side}-${setIdx}`);
+      if (!el) return;
+      el.value = String(targetVal);
+      window.refreshEditHistoryValidation(historyId);
+    };
+
+    window.openEditHistoryModal = function (historyId) {
+      const match = state.matchHistory.find(m => m.id === historyId);
+      if (!match) return;
+
+      const mMeta = getModeMeta(match.mode);
+      const derived = recalculateStats();
+      const comp = derived.historyNewestFirst.find(h => h.id === historyId);
+      const sCount = match.setCount || 2;
+      const targetVal = match.targetScore || 21;
+      const scores = Array.from({ length: sCount }, (_, i) => ({
+        a: match.sets[i] !== undefined ? String(match.sets[i].a) : '',
+        b: match.sets[i] !== undefined ? String(match.sets[i].b) : '',
+      }));
+
+      const teamALabel = comp.teamASlots.map(s => s.name).join(' & ');
+      const teamBLabel = comp.teamBSlots.map(s => s.name).join(' & ');
+
+      openModal(`
+        <div class="animate-modal bg-white border border-[#DCEAE3] rounded-3xl max-w-xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-base font-extrabold text-slate-900">Edit Match #${match.matchNumber}</h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Format: ${sCount} Set • Target ${targetVal} Poin • Deuce ${match.deuceEnabled ? 'ON' : 'OFF'}
+              </p>
+            </div>
+            <button type="button" onclick="window.closeModal()" class="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs bg-[#F2F7F4] border border-[#DCEAE3] rounded-2xl p-3">
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#047857]">${mMeta.sideALabel}</span>
+              <div class="font-bold text-slate-900 mt-0.5">${escapeHTML(teamALabel)}</div>
+            </div>
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-teal-700">${mMeta.sideBLabel}</span>
+              <div class="font-bold text-slate-900 mt-0.5">${escapeHTML(teamBLabel)}</div>
+            </div>
+          </div>
+
+          <form onsubmit="window.submitEditHistory(event, '${match.id}')" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Label Lapangan</label>
+              <input
+                type="text"
+                id="edit-hist-court"
+                value="${escapeHTML(match.court)}"
+                required
+                class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:bg-white focus:border-[#059669] outline-none text-sm font-bold text-slate-900"
+              />
+            </div>
+
+            <div class="space-y-3">
+              <div class="text-xs font-bold text-slate-600">Skor Per Set (${mMeta.sideALabel} vs ${mMeta.sideBLabel})</div>
+              ${scores.map((sc, i) => `
+                <div id="edit-hist-row-${i}" class="bg-[#F6FAF8] border border-[#DCEAE3] rounded-2xl p-3 space-y-2.5 ${sCount === 3 && i === 2 ? 'hidden' : ''}">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-extrabold text-slate-700">Set ${i + 1}</span>
+                    <span id="edit-hist-hint-${i}" class="text-[11px] font-medium text-slate-500"></span>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- Side A Quick Controls -->
+                    <div class="bg-white border border-emerald-200 rounded-xl p-2 space-y-1.5">
+                      <div class="text-[10px] font-extrabold uppercase text-[#047857] text-center">Skor ${mMeta.sideALabel}</div>
+                      <div class="flex items-center justify-center gap-1.5">
+                        <button type="button" onclick="window.stepEditHistoryScore('${match.id}', ${i}, 'a', -1)" class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-base cursor-pointer">−</button>
+                        <input
+                          type="number"
+                          min="0"
+                          max="99"
+                          id="edit-hist-a-${i}"
+                          value="${escapeHTML(sc.a)}"
+                          oninput="window.refreshEditHistoryValidation('${match.id}')"
+                          placeholder="0"
+                          class="scoreboard-digits w-14 h-9 text-center font-mono font-black text-base rounded-lg bg-slate-50 border border-emerald-300 focus:bg-white focus:border-[#059669] outline-none text-slate-900"
+                        />
+                        <button type="button" onclick="window.stepEditHistoryScore('${match.id}', ${i}, 'a', 1)" class="w-9 h-9 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#047857] font-black text-base cursor-pointer">+</button>
+                        <button type="button" onclick="window.setQuickEditHistoryScore('${match.id}', ${i}, 'a', ${targetVal})" title="Isi langsung ${targetVal}" class="px-2.5 h-9 rounded-lg bg-[#059669] hover:bg-[#047857] text-white font-mono font-extrabold text-xs cursor-pointer shadow-xs">${targetVal}</button>
+                      </div>
+                    </div>
+                    <!-- Side B Quick Controls -->
+                    <div class="bg-white border border-teal-200 rounded-xl p-2 space-y-1.5">
+                      <div class="text-[10px] font-extrabold uppercase text-teal-700 text-center">Skor ${mMeta.sideBLabel}</div>
+                      <div class="flex items-center justify-center gap-1.5">
+                        <button type="button" onclick="window.stepEditHistoryScore('${match.id}', ${i}, 'b', -1)" class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-black text-base cursor-pointer">−</button>
+                        <input
+                          type="number"
+                          min="0"
+                          max="99"
+                          id="edit-hist-b-${i}"
+                          value="${escapeHTML(sc.b)}"
+                          oninput="window.refreshEditHistoryValidation('${match.id}')"
+                          placeholder="0"
+                          class="scoreboard-digits w-14 h-9 text-center font-mono font-black text-base rounded-lg bg-slate-50 border border-teal-300 focus:bg-white focus:border-teal-500 outline-none text-slate-900"
+                        />
+                        <button type="button" onclick="window.stepEditHistoryScore('${match.id}', ${i}, 'b', 1)" class="w-9 h-9 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 font-black text-base cursor-pointer">+</button>
+                        <button type="button" onclick="window.setQuickEditHistoryScore('${match.id}', ${i}, 'b', ${targetVal})" title="Isi langsung ${targetVal}" class="px-2.5 h-9 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-mono font-extrabold text-xs cursor-pointer shadow-xs">${targetVal}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+
+            <div id="edit-hist-summary" class="text-xs rounded-xl px-3.5 py-2.5 border"></div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onclick="window.confirmDeleteHistory('${match.id}')"
+                class="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition cursor-pointer"
+              >
+                Hapus Riwayat
+              </button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="window.closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
+                  Batal
+                </button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs font-extrabold cursor-pointer shadow-sm">
+                  Simpan &amp; Hitung Ulang
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      `);
+
+      window.refreshEditHistoryValidation(match.id);
+    };
+
+    window.refreshEditHistoryValidation = function (historyId) {
+      const match = state.matchHistory.find(m => m.id === historyId);
+      if (!match) return;
+      const mMeta = getModeMeta(match.mode);
+      const sCount = match.setCount || 2;
+      const rawSets = Array.from({ length: sCount }, (_, i) => ({
+        a: document.getElementById(`edit-hist-a-${i}`)?.value ?? '',
+        b: document.getElementById(`edit-hist-b-${i}`)?.value ?? '',
+      }));
+
+      const evalRes = evaluateMatchScores(rawSets, sCount, match.targetScore, match.deuceEnabled);
+
+      if (sCount === 3) {
+        const row3 = document.getElementById('edit-hist-row-2');
+        if (row3) {
+          if (evalRes.needsSet3) row3.classList.remove('hidden');
+          else row3.classList.add('hidden');
+        }
+      }
+
+      evalRes.setResults.forEach((sr, i) => {
+        const hintEl = document.getElementById(`edit-hist-hint-${i}`);
+        if (!hintEl) return;
+        if (sr.skipped) {
+          hintEl.textContent = sr.reason;
+          hintEl.className = 'text-[11px] text-slate-400 font-semibold';
+        } else if (sr.valid) {
+          const winLbl = sr.winner === 'A' ? mMeta.sideALabel : mMeta.sideBLabel;
+          hintEl.textContent = sr.winner === 'D' ? `✓ Seri` : `✓ ${winLbl} Menang`;
+          hintEl.className = 'text-[11px] font-bold text-[#047857]';
+        } else {
+          hintEl.textContent = `⚠ ${sr.reason}`;
+          hintEl.className = 'text-[11px] font-bold text-amber-700';
+        }
+      });
+
+      const sumEl = document.getElementById('edit-hist-summary');
+      if (sumEl) {
+        if (evalRes.isValidMatch) {
+          const wText = evalRes.winner === 'A' ? `${mMeta.sideALabel} Menang` : evalRes.winner === 'B' ? `${mMeta.sideBLabel} Menang` : 'Seri';
+          sumEl.className = 'text-xs font-bold text-[#047857] bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between';
+          sumEl.innerHTML = `<span>✓ Skor Sah: ${wText}</span><span class="scoreboard-digits font-mono">Total ${evalRes.totalA} - ${evalRes.totalB}</span>`;
+        } else {
+          sumEl.className = 'text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5';
+          sumEl.textContent = `⚠ ${evalRes.firstError}`;
+        }
+      }
+    };
+
+    window.submitEditHistory = function (event, historyId) {
+      event.preventDefault();
+      const match = state.matchHistory.find(m => m.id === historyId);
+      if (!match) return;
+
+      const sCount = match.setCount || 2;
+      const rawSets = Array.from({ length: sCount }, (_, i) => ({
+        a: document.getElementById(`edit-hist-a-${i}`)?.value ?? '',
+        b: document.getElementById(`edit-hist-b-${i}`)?.value ?? '',
+      }));
+
+      const evalRes = evaluateMatchScores(rawSets, sCount, match.targetScore, match.deuceEnabled);
+      if (!evalRes.isValidMatch) {
+        showToast(`Periksa kembali skor: ${evalRes.firstError}`, 'warning');
+        return;
+      }
+
+      const newCourt = (document.getElementById('edit-hist-court')?.value || '').trim() || match.court;
+      match.court = newCourt;
+      match.sets = evalRes.setResults.filter(sr => !sr.skipped && sr.valid).map(sr => ({ a: sr.a, b: sr.b }));
+
+      window.closeModal();
+      persistState();
+      renderAll();
+      showToast(`Riwayat Match #${match.matchNumber} diperbarui & seluruh klasemen dikalkulasi ulang!`, 'success');
+    };
+
+    window.confirmDeleteHistory = function (historyId) {
+      const match = state.matchHistory.find(m => m.id === historyId);
+      if (!match) return;
+
+      showConfirmModal({
+        title: `Hapus Riwayat Match #${match.matchNumber}?`,
+        message: 'Pertandingan akan dihapus permanen. Kuota main, status Wildcard, dan klasemen seluruh peserta akan dihitung ulang otomatis.',
+        confirmLabel: 'Ya, Hapus Riwayat',
+        confirmStyle: 'danger',
+        onConfirm: () => {
+          state.matchHistory = state.matchHistory.filter(m => m.id !== historyId);
+          persistState();
+          renderAll();
+          showToast(`Riwayat Match #${match.matchNumber} dihapus & klasemen diperbarui.`, 'info');
+        }
+      });
+    };
+
+    // =========================================================================
+    // 11. CLOUD ROOM MODAL & BACKUP (EXPORT / IMPORT / RESET JSON)
+    // =========================================================================
+    window.openCloudRoomModal = function () {
+      const uidDisplay = currentUser?.uid || 'Mode Lokal (Belum terhubung Cloud)';
+      openModal(`
+        <div class="animate-modal bg-white border border-[#DCEAE3] rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-emerald-100 text-[#047857] flex items-center justify-center">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+              </span>
+              <span>Cloud Room &amp; Sinkronisasi</span>
+            </h3>
+            <button type="button" onclick="window.closeModal()" class="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+
+          <div class="bg-[#EDF7F1] border border-[#C6E5D6] rounded-2xl p-4 space-y-2">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-[#047857]">Kode Room Aktif Saat Ini</div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xl font-black tracking-widest text-[#047857]">${escapeHTML(currentRoomId)}</span>
+              <button
+                type="button"
+                onclick="window.copyCurrentRoomCode()"
+                class="px-3 py-1.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs font-bold cursor-pointer shadow-sm"
+              >
+                Salin Kode
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed">
+              Masukkan kode Room yang sama di HP/laptop panitia lain agar daftar peserta, skor lapangan, dan klasemen sinkron otomatis secara real-time.
+            </p>
+          </div>
+
+          <form onsubmit="window.switchCloudRoomSubmit(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1.5">Gabung / Pindah ke Room Lain</label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="switch-room-input"
+                  placeholder="Contoh: MABAR-GOR1"
+                  maxlength="24"
+                  class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 focus:bg-white focus:border-[#059669] outline-none text-sm font-mono font-bold uppercase text-slate-900"
+                  required
+                />
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs font-extrabold cursor-pointer shadow-sm">
+                  Gabung
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+            <button
+              type="button"
+              onclick="window.createFreshRoom()"
+              class="text-xs font-bold text-[#047857] hover:text-emerald-900 cursor-pointer"
+            >
+              + Buat Room Baru Acak
+            </button>
+            <button type="button" onclick="window.closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 cursor-pointer">
+              Tutup
+            </button>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-400 break-all">
+            ID Perangkat: <span class="font-mono text-slate-600">${escapeHTML(uidDisplay)}</span>
+          </div>
+        </div>
+      `);
+    };
+
+    window.copyCurrentRoomCode = function () {
+      const ok = copyTextToClipboard(currentRoomId);
+      showToast(ok ? `Kode Room "${currentRoomId}" disalin ke clipboard!` : `Kode Room: ${currentRoomId}`, 'success');
+    };
+
+    window.switchCloudRoomSubmit = function (event) {
+      event.preventDefault();
+      const raw = (document.getElementById('switch-room-input')?.value || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+      if (raw.length < 3) {
+        showToast('Kode Room minimal 3 karakter (huruf/angka).', 'warning');
+        return;
+      }
+      currentRoomId = raw;
+      uiState.draftMatch = null;
+      uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+      loadLocalMirror(currentRoomId);
+      saveLocalMirror();
+      if (firebaseReady && currentUser) {
+        subscribeToCloudRoom(currentRoomId);
+      }
+      window.closeModal();
+      updateCloudBadgeUI();
+      renderAll();
+      showToast(`Berhasil berpindah ke Room "${currentRoomId}".`, 'success');
+    };
+
+    window.createFreshRoom = function () {
+      const newCode = 'MABAR-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+      currentRoomId = newCode;
+      state = {
+        settings: { ...DEFAULT_SETTINGS },
+        entities: [],
+        activeMatches: [],
+        matchHistory: [],
+        matchCounter: 1,
+        updatedAt: Date.now(),
+      };
+      uiState.draftMatch = null;
+      uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+      saveLocalMirror();
+      if (firebaseReady && currentUser) {
+        subscribeToCloudRoom(currentRoomId);
+        persistState(false);
+      }
+      window.closeModal();
+      updateCloudBadgeUI();
+      renderAll();
+      showToast(`Room baru "${currentRoomId}" berhasil dibuat!`, 'success');
+    };
+
+    window.exportJSONData = function () {
+      try {
+        const payload = {
+          app: 'Mabar Badminton Pro',
+          version: 4,
+          roomId: currentRoomId,
+          exportedAt: new Date().toISOString(),
+          data: state,
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mabar-badminton-${currentRoomId.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('File backup JSON berhasil diunduh!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal mengekspor data JSON.', 'error');
+      }
+    };
+
+    window.triggerImportJSON = function () {
+      const inp = document.getElementById('import-json-input');
+      if (inp) {
+        inp.value = '';
+        inp.click();
+      }
+    };
+
+    document.getElementById('import-json-input').addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || '{}'));
+          const rawData = parsed.data && Array.isArray(parsed.data.entities) ? parsed.data : parsed;
+          if (!rawData || !Array.isArray(rawData.entities)) {
+            throw new Error('Struktur JSON tidak valid.');
+          }
+          state = sanitizeState(rawData);
+          uiState.draftMatch = null;
+          uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+          persistState();
+          renderAll();
+          showToast(`Data dipulihkan: ${state.entities.length} peserta & ${state.matchHistory.length} riwayat match!`, 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('File JSON tidak valid atau rusak.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    window.confirmResetAllData = function () {
+      showConfirmModal({
+        title: 'Reset Seluruh Data Room Ini?',
+        message: 'Semua daftar peserta, pertandingan aktif, dan riwayat skor pada Room ini akan dikosongkan permanen. Pastikan Anda sudah Export JSON jika perlu backup.',
+        confirmLabel: 'Ya, Reset Semua',
+        confirmStyle: 'danger',
+        onConfirm: () => {
+          state = {
+            settings: { ...state.settings },
+            entities: [],
+            activeMatches: [],
+            matchHistory: [],
+            matchCounter: 1,
+            updatedAt: Date.now(),
+          };
+          uiState.draftMatch = null;
+          uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+          persistState();
+          renderAll();
+          showToast('Seluruh data berhasil direset.', 'info');
+        }
+      });
+    };
+
+    // =========================================================================
+    // 12. NAVIGATION & UI INTERACTIONS
+    // =========================================================================
+    window.switchTab = function (tabName) {
+      uiState.activeTab = tabName;
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.toggleWildcardOption = function (checked) {
+      uiState.allowWildcard = Boolean(checked);
+      if (!uiState.allowWildcard && uiState.draftMatch) {
+        const derived = recalculateStats();
+        const hasWC = [...uiState.draftMatch.teamA, ...uiState.draftMatch.teamB].some(
+          id => derived.statsMap.get(id)?.status === 'finished'
+        );
+        if (hasWC) {
+          uiState.draftMatch = null;
+          uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+        }
+      }
+      renderAll();
+    };
+
+    window.setMatchmakingMode = function (mode) {
+      uiState.matchmakingMode = mode;
+      uiState.draftMatch = null;
+      uiState.manualSlots = { a1: '', a2: '', b1: '', b2: '' };
+      renderAll();
+    };
+
+    window.handleSearchInput = function (val) {
+      uiState.searchQuery = val;
+      const listEl = document.getElementById('participants-list-body');
+      if (listEl) {
+        const derived = recalculateStats();
+        listEl.innerHTML = renderParticipantRowsHTML(derived);
+      }
+    };
+
+    // =========================================================================
+    // 13. RENDER FUNCTIONS (BADMINTON COURT LIGHT MODE UI)
+    // =========================================================================
+    function renderShuttlecockVSBadge() {
+      return `
+        <div class="relative z-10 w-11 h-11 rounded-full bg-white border-2 border-[#059669] shadow-md shadow-emerald-900/10 flex flex-col items-center justify-center shrink-0">
+          <svg class="w-3.5 h-3.5 text-[#059669] -mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3L8.5 10.5H15.5L12 3Z" fill="#D1FAE5"/>
+            <circle cx="12" cy="13" r="2.6" fill="#059669"/>
+          </svg>
+          <span class="text-[9px] font-black tracking-wider text-[#047857] leading-none mt-0.5">VS</span>
+        </div>
+      `;
+    }
+
+    function renderNav(derived) {
+      const tabs = [
+        { id: 'participants', btnId: 'nav-tab-participants', badgeId: 'nav-badge-participants', count: derived.counts.total },
+        { id: 'matches', btnId: 'nav-tab-matches', badgeId: 'nav-badge-matches', count: derived.activeList.length },
+        { id: 'leaderboard', btnId: 'nav-tab-leaderboard', badgeId: null, count: null },
+      ];
+
+      tabs.forEach(t => {
+        const btn = document.getElementById(t.btnId);
+        const badge = t.badgeId ? document.getElementById(t.badgeId) : null;
+        const active = uiState.activeTab === t.id;
+
+        if (btn) {
+          btn.className = active
+            ? 'relative flex items-center justify-center py-2.5 sm:py-3 rounded-2xl border border-[#059669] bg-[#059669] text-white shadow-md shadow-emerald-700/20 transition-all duration-200 cursor-pointer'
+            : 'relative flex items-center justify-center py-2.5 sm:py-3 rounded-2xl border border-[#DCEAE3] bg-[#F6FAF8] text-slate-500 hover:text-[#047857] hover:bg-emerald-50 hover:border-emerald-300 transition-all duration-200 cursor-pointer';
+        }
+        if (badge) {
+          badge.textContent = t.count;
+          badge.className = active
+            ? 'absolute top-1.5 right-3 sm:right-6 min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-extrabold flex items-center justify-center bg-white text-[#047857] shadow-xs'
+            : (t.id === 'matches' && t.count > 0
+                ? 'absolute top-1.5 right-3 sm:right-6 min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-extrabold flex items-center justify-center bg-[#D97706] text-white'
+                : 'absolute top-1.5 right-3 sm:right-6 min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-extrabold flex items-center justify-center bg-[#DCEAE3] text-slate-700');
+        }
+      });
+    }
+
+    function renderStatusBadge(st) {
+      const maxM = state.settings.maxMatches;
+      if (st.status === 'playing') {
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300 text-[11px] font-extrabold whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>Sedang Bermain</span>`;
+      }
+      if (st.status === 'left') {
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-300 text-[11px] font-bold whitespace-nowrap">Pulang (Non-Aktif)</span>`;
+      }
+      if (st.status === 'finished') {
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200 text-[11px] font-extrabold whitespace-nowrap">Selesai (${st.regularPlayed}/${maxM})</span>`;
+      }
+      return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-[#047857] border border-emerald-200 text-[11px] font-extrabold whitespace-nowrap">Tersedia</span>`;
+    }
+
+    function renderParticipantRowsHTML(derived) {
+      const meta = getModeMeta();
+      const q = uiState.searchQuery.trim().toLowerCase();
+      const list = Array.from(derived.statsMap.values()).filter(st => {
+        if (!q) return true;
+        return (
+          st.entity.name.toLowerCase().includes(q) ||
+          (st.entity.player1 || '').toLowerCase().includes(q) ||
+          (st.entity.player2 || '').toLowerCase().includes(q)
+        );
+      });
+
+      if (list.length === 0) {
+        return `
+          <tr>
+            <td colspan="4" class="py-10 px-4 text-center text-sm text-slate-400">
+              ${state.entities.length === 0
+                ? `Belum ada ${meta.entityNounLower} terdaftar. Gunakan form Check-in Cepat di atas untuk mulai!`
+                : `Tidak ada ${meta.entityNounLower} yang cocok dengan pencarian Anda.`}
+            </td>
+          </tr>
+        `;
+      }
+
+      const maxM = state.settings.maxMatches;
+      return list.map((st, index) => {
+        const e = st.entity;
+        const hasMemberSub = e.teamName && e.player1 && e.player2;
+        const canDelete = st.completedCount === 0 && !st.isPlaying;
+
+        return `
+          <tr class="border-b border-[#EAF3EE] hover:bg-[#F6FAF8] transition ${e.isLeft ? 'opacity-65 bg-slate-50/70' : ''}">
+            <td class="py-3 px-3 sm:px-4">
+              <div class="flex items-start gap-2.5">
+                <span class="text-xs font-mono font-bold text-slate-400 mt-0.5 w-5 shrink-0">${index + 1}.</span>
+                <div class="min-w-0">
+                  <div class="text-sm font-bold text-slate-900 break-words">${escapeHTML(e.name)}</div>
+                  ${hasMemberSub ? `
+                    <div class="text-[11px] text-slate-500 font-medium mt-0.5">
+                      (${escapeHTML(e.player1)} / ${escapeHTML(e.player2)})
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-2.5 sm:px-3">
+              ${renderStatusBadge(st)}
+            </td>
+            <td class="py-3 px-2.5 sm:px-3 text-center whitespace-nowrap">
+              <span class="scoreboard-digits font-mono text-xs sm:text-sm font-extrabold text-slate-800">${st.regularPlayed}/${maxM}</span>
+              ${st.wildcardPlayed > 0 ? `
+                <span class="ml-1 inline-block px-1.5 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-extrabold">
+                  +${st.wildcardPlayed} WC
+                </span>
+              ` : ''}
+            </td>
+            <td class="py-3 px-3 sm:px-4 text-right whitespace-nowrap">
+              <div class="inline-flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick="window.openEditEntityModal('${e.id}')"
+                  title="Edit Nama"
+                  class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onclick="window.toggleParticipantLeft('${e.id}')"
+                  ${st.isPlaying ? 'disabled' : ''}
+                  title="${e.isLeft ? 'Aktifkan kembali untuk bermain' : 'Tandai pulang duluan (skor klasemen tetap utuh)'}"
+                  class="px-2.5 py-1.5 rounded-xl border text-xs font-bold transition ${
+                    st.isPlaying
+                      ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                      : e.isLeft
+                        ? 'bg-emerald-50 hover:bg-emerald-100 border-emerald-200 text-[#047857] cursor-pointer'
+                        : 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800 cursor-pointer'
+                  }"
+                >
+                  ${e.isLeft ? 'Aktifkan' : 'Pulang'}
+                </button>
+                <button
+                  type="button"
+                  onclick="window.confirmDeleteEntity('${e.id}')"
+                  ${!canDelete ? 'disabled' : ''}
+                  title="${canDelete ? 'Hapus peserta' : 'Tidak bisa dihapus karena sudah/sedang bertanding'}"
+                  class="p-1.5 rounded-xl border transition ${
+                    canDelete
+                      ? 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-600 cursor-pointer'
+                      : 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                  }"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // -------------------------------------------------------------------------
+    // TAB 1: PENGATURAN INLINE (2x2), STATISTIK, CHECK-IN, DAFTAR HADIR & BACKUP
+    // -------------------------------------------------------------------------
+    function renderParticipantsTab(derived) {
+      const s = state.settings;
+      const meta = getModeMeta();
+      const isPair = s.mode === 'fixed_pair';
+      const isSingle = s.mode === 'single';
+      const c = derived.counts;
+
+      return `
+        <!-- KARTU PENGATURAN SISTEM MABAR (INLINE 2x2 — TANPA POPUP) -->
+        <section class="bg-white border border-[#DCEAE3] rounded-3xl p-4 sm:p-6 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-[#047857] flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <circle cx="9" cy="6" r="2" fill="currentColor"/>
+                  <line x1="4" y1="12" x2="20" y2="12"/>
+                  <circle cx="15" cy="12" r="2" fill="currentColor"/>
+                  <line x1="4" y1="18" x2="20" y2="18"/>
+                  <circle cx="11" cy="18" r="2" fill="currentColor"/>
+                </svg>
+              </div>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Pengaturan Sistem Mabar</h2>
+            </div>
+            <span class="text-xs font-medium text-slate-400">Otomatis berlaku untuk match berikutnya</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            <!-- Kotak 1: Mode Permainan (3 Tombol Sejajar Responsif) -->
+            <div class="rounded-2xl border border-[#DCEAE3] bg-[#F8FBF9] p-3.5 space-y-2.5">
+              <label class="block text-xs font-bold text-slate-600">1. Mode Permainan</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onclick="window.switchGameMode('individual')"
+                  class="py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition cursor-pointer leading-tight ${
+                    s.mode === 'individual'
+                      ? 'bg-[#059669] text-white shadow-sm'
+                      : 'bg-white text-slate-700 border border-[#DCEAE3] hover:border-emerald-400'
+                  }"
+                >
+                  Ganda Acak (Mix)
+                </button>
+                <button
+                  type="button"
+                  onclick="window.switchGameMode('fixed_pair')"
+                  class="py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition cursor-pointer leading-tight ${
+                    s.mode === 'fixed_pair'
+                      ? 'bg-[#059669] text-white shadow-sm'
+                      : 'bg-white text-slate-700 border border-[#DCEAE3] hover:border-emerald-400'
+                  }"
+                >
+                  Ganda Tetap (Pair)
+                </button>
+                <button
+                  type="button"
+                  onclick="window.switchGameMode('single')"
+                  class="py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition cursor-pointer leading-tight ${
+                    s.mode === 'single'
+                      ? 'bg-[#059669] text-white shadow-sm'
+                      : 'bg-white text-slate-700 border border-[#DCEAE3] hover:border-emerald-400'
+                  }"
+                >
+                  Tunggal (Single)
+                </button>
+              </div>
+            </div>
+
+            <!-- Kotak 2: Kuota Maks. Main (Stepper − | X× Main | +) -->
+            <div class="rounded-2xl border border-[#DCEAE3] bg-[#F8FBF9] p-3.5 space-y-2.5">
+              <label class="block text-xs font-bold text-slate-600">2. Kuota Maks. Main</label>
+              <div class="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onclick="window.adjustMaxMatches(-1)"
+                  ${s.maxMatches <= 1 ? 'disabled' : ''}
+                  aria-label="Kurangi kuota main"
+                  class="w-11 h-11 rounded-xl bg-white hover:bg-emerald-50 border border-[#DCEAE3] text-slate-800 font-extrabold text-lg flex items-center justify-center transition ${s.maxMatches <= 1 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer shadow-2xs'}"
+                >
+                  −
+                </button>
+                <div class="scoreboard-digits flex-1 h-11 rounded-xl bg-white border border-[#DCEAE3] flex items-center justify-center font-extrabold text-base sm:text-lg text-[#047857] shadow-2xs">
+                  ${s.maxMatches}× Main
+                </div>
+                <button
+                  type="button"
+                  onclick="window.adjustMaxMatches(1)"
+                  ${s.maxMatches >= 20 ? 'disabled' : ''}
+                  aria-label="Tambah kuota main"
+                  class="w-11 h-11 rounded-xl bg-white hover:bg-emerald-50 border border-[#DCEAE3] text-slate-800 font-extrabold text-lg flex items-center justify-center transition ${s.maxMatches >= 20 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer shadow-2xs'}"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- Kotak 3: Format Set -->
+            <div class="rounded-2xl border border-[#DCEAE3] bg-[#F8FBF9] p-3.5 space-y-2.5">
+              <label for="inline-set-format" class="block text-xs font-bold text-slate-600">3. Format Set</label>
+              <select
+                id="inline-set-format"
+                onchange="window.changeSetFormat(this.value)"
+                class="w-full h-11 px-3.5 rounded-xl bg-white border border-[#DCEAE3] focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-800 cursor-pointer"
+              >
+                <option value="1" ${s.setCount === 1 ? 'selected' : ''}>1 Set</option>
+                <option value="2" ${s.setCount === 2 ? 'selected' : ''}>2 Set (Total Poin)</option>
+                <option value="3" ${s.setCount === 3 ? 'selected' : ''}>3 Set (Best of 3)</option>
+              </select>
+            </div>
+
+            <!-- Kotak 4: Skor/Set & Deuce -->
+            <div class="rounded-2xl border border-[#DCEAE3] bg-[#F8FBF9] p-3.5 space-y-2.5">
+              <label for="inline-target-score" class="block text-xs font-bold text-slate-600">4. Skor/Set &amp; Deuce</label>
+              <div class="grid grid-cols-2 gap-2.5">
+                <select
+                  id="inline-target-score"
+                  onchange="window.changeTargetScore(this.value)"
+                  class="w-full h-11 px-3.5 rounded-xl bg-white border border-[#DCEAE3] focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-800 cursor-pointer"
+                >
+                  <option value="11" ${s.targetScore === 11 ? 'selected' : ''}>11 Poin</option>
+                  <option value="15" ${s.targetScore === 15 ? 'selected' : ''}>15 Poin</option>
+                  <option value="21" ${s.targetScore === 21 ? 'selected' : ''}>21 Poin</option>
+                  <option value="30" ${s.targetScore === 30 ? 'selected' : ''}>30 Poin</option>
+                </select>
+
+                <button
+                  type="button"
+                  onclick="window.toggleDeuceSetting()"
+                  class="w-full h-11 px-3 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer border ${
+                    s.deuceEnabled
+                      ? 'bg-[#059669] hover:bg-[#047857] text-white border-[#059669] shadow-sm'
+                      : 'bg-slate-200 hover:bg-slate-300/80 text-slate-700 border-slate-300/70'
+                  }"
+                >
+                  Deuce: ${s.deuceEnabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KARTU STATISTIK RINGKAS -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="bg-white border border-[#DCEAE3] rounded-2xl p-4 shadow-xs">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total ${meta.entityNoun}</div>
+            <div class="mt-1 flex items-baseline justify-between gap-2">
+              <span class="scoreboard-digits text-2xl sm:text-3xl font-black text-slate-900 font-mono">${c.total}</span>
+              ${c.left > 0 ? `<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${c.left} Pulang</span>` : ''}
+            </div>
+          </div>
+
+          <div class="bg-white border border-emerald-200 rounded-2xl p-4 shadow-xs">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-[#059669]">Tersedia</div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="scoreboard-digits text-2xl sm:text-3xl font-black text-[#047857] font-mono">${c.available}</span>
+              <span class="text-[11px] font-semibold text-[#059669]">Siap Main</span>
+            </div>
+          </div>
+
+          <div class="bg-white border border-amber-200 rounded-2xl p-4 shadow-xs">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-amber-600">Sedang Bermain</div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="scoreboard-digits text-2xl sm:text-3xl font-black text-[#D97706] font-mono">${c.playing}</span>
+              <span class="text-[11px] font-semibold text-amber-700">${derived.activeList.length} Court</span>
+            </div>
+          </div>
+
+          <div class="bg-white border border-teal-200 rounded-2xl p-4 shadow-xs">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-teal-600">Selesai Kuota</div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="scoreboard-digits text-2xl sm:text-3xl font-black text-teal-700 font-mono">${c.finished}</span>
+              <span class="text-[11px] font-semibold text-teal-600">${s.maxMatches}/${s.maxMatches} Main</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- FORM CHECK-IN CEPAT -->
+        <section class="bg-white border border-[#DCEAE3] rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-sm sm:text-base font-extrabold text-slate-900">
+              Check-in Cepat ${isPair ? 'Pasangan Tetap' : isSingle ? 'Pemain Tunggal (1v1)' : 'Peserta Ganda Acak'}
+            </h2>
+            <span class="text-[11px] font-semibold text-slate-400">Tekan Enter untuk tambah cepat</span>
+          </div>
+
+          <form onsubmit="window.handleCheckInSubmit(event)" class="space-y-3">
+            ${!isPair ? `
+              <div class="flex flex-col sm:flex-row gap-2.5">
+                <input
+                  type="text"
+                  id="checkin-single-name"
+                  placeholder="${isSingle ? 'Masukkan nama pemain tunggal (contoh: Anthony Ginting)...' : 'Masukkan nama peserta (contoh: Kevin Sanjaya)...'}"
+                  autocomplete="off"
+                  class="flex-1 px-4 py-3 rounded-xl bg-[#F8FBF9] border border-[#CFE2D8] focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400"
+                />
+                <button
+                  type="submit"
+                  class="px-6 py-3 rounded-xl bg-[#059669] hover:bg-[#047857] active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition cursor-pointer shrink-0"
+                >
+                  + Tambah ${meta.entityNoun}
+                </button>
+              </div>
+            ` : `
+              <div class="space-y-2.5">
+                <div>
+                  <input
+                    type="text"
+                    id="checkin-pair-team"
+                    placeholder="Nama Tim (Opsional — kosongkan agar otomatis memakai nama kedua pemain)"
+                    autocomplete="off"
+                    class="w-full px-4 py-2.5 rounded-xl bg-[#F8FBF9] border border-[#CFE2D8] focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <input
+                    type="text"
+                    id="checkin-pair-p1"
+                    placeholder="Pemain 1 (Wajib)..."
+                    autocomplete="off"
+                    class="px-4 py-3 rounded-xl bg-[#F8FBF9] border border-[#CFE2D8] focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400"
+                  />
+                  <input
+                    type="text"
+                    id="checkin-pair-p2"
+                    placeholder="Pemain 2 (Wajib)..."
+                    autocomplete="off"
+                    class="px-4 py-3 rounded-xl bg-[#F8FBF9] border border-[#CFE2D8] focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm font-semibold text-slate-900 placeholder:text-slate-400"
+                  />
+                  <button
+                    type="submit"
+                    class="px-5 py-3 rounded-xl bg-[#059669] hover:bg-[#047857] active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition cursor-pointer"
+                  >
+                    + Tambah Pasangan
+                  </button>
+                </div>
+                <div class="flex items-start gap-2 text-[11px] text-[#047857] bg-[#EDF7F1] border border-[#C6E5D6] rounded-xl px-3.5 py-2.5">
+                  <svg class="w-4 h-4 shrink-0 mt-0.5 text-[#059669]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <span><strong>Tips Pemain Ganjil:</strong> Jika ada 1 pemain tanpa pasangan di Mode Ganda Tetap, panitia dapat mendaftarkannya bersama pemain <em>joker</em>/panitia sebagai pasangan baru.</span>
+                </div>
+              </div>
+            `}
+          </form>
+        </section>
+
+        <!-- DAFTAR HADIR & STATUS -->
+        <section class="bg-white border border-[#DCEAE3] rounded-3xl overflow-hidden shadow-xs">
+          <div class="p-4 sm:p-5 border-b border-[#EAF3EE] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900">Daftar Hadir &amp; Status</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Status real-time otomatis berubah saat bermain, selesai kuota, atau pulang duluan.</p>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <input
+                type="text"
+                value="${escapeHTML(uiState.searchQuery)}"
+                oninput="window.handleSearchInput(this.value)"
+                placeholder="Cari nama ${meta.entityNounLower}..."
+                class="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[#F8FBF9] border border-[#DCEAE3] focus:bg-white focus:border-[#059669] outline-none text-xs font-semibold text-slate-900 placeholder:text-slate-400"
+              />
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-[#F4F9F6] border-b border-[#DCEAE3] text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                  <th class="py-3 px-3 sm:px-4">Nama ${isPair ? 'Pasangan / Tim' : meta.entityNoun}</th>
+                  <th class="py-3 px-2.5 sm:px-3">Status</th>
+                  <th class="py-3 px-2.5 sm:px-3 text-center">Main</th>
+                  <th class="py-3 px-3 sm:px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="participants-list-body">
+                ${renderParticipantRowsHTML(derived)}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- BACKUP & MANAJEMEN DATA -->
+        <section class="bg-white border border-[#DCEAE3] rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900">Backup &amp; Manajemen Data</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Data otomatis tersimpan di Cloud Room &amp; cadangan lokal perangkat Anda.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onclick="window.exportJSONData()"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-[#C6E5D6] text-xs font-bold text-[#047857] transition cursor-pointer"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Export JSON</span>
+            </button>
+            <button
+              type="button"
+              onclick="window.triggerImportJSON()"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Import JSON</span>
+            </button>
+            <button
+              type="button"
+              onclick="window.confirmResetAllData()"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-bold text-rose-700 transition cursor-pointer"
+            >
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span>Reset Data</span>
+            </button>
+          </div>
+        </section>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // TAB 2: MATCHMAKING (MINI COURT DRAFT), ACTIVE MATCHES & RIWAYAT
+    // -------------------------------------------------------------------------
+    function renderSlotChip(slot) {
+      return `
+        <div class="flex flex-wrap items-center justify-between gap-1.5 px-3 py-2 rounded-xl bg-white/95 border border-emerald-200/80 shadow-2xs">
+          <div class="min-w-0">
+            <div class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${escapeHTML(slot.name)}</div>
+            ${slot.subName ? `<div class="text-[10px] text-slate-500 font-medium truncate">(${escapeHTML(slot.subName)})</div>` : ''}
+          </div>
+          ${slot.isWildcard ? `
+            <span class="px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-extrabold whitespace-nowrap">
+              Wildcard - Poin Tidak Dihitung
+            </span>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function renderMiniCourtHeadToHead(slotsA, slotsB, sideALabel, sideBLabel) {
+      return `
+        <div class="mini-court-surface rounded-2xl p-3.5 sm:p-4">
+          <div class="relative z-10 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 items-center">
+            <!-- Sisi Lapangan A -->
+            <div class="space-y-2 p-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-[#059669]"></span>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#047857]">${sideALabel}</span>
+              </div>
+              <div class="space-y-1.5">
+                ${slotsA.map(slot => renderSlotChip(slot)).join('')}
+              </div>
+            </div>
+
+            <!-- Net Tengah & Lencana Kok VS -->
+            <div class="relative flex md:flex-col items-center justify-center py-1 md:py-0 md:px-1 self-stretch">
+              <div class="md:hidden absolute left-2 right-2 h-1 court-net-horizontal rounded-full"></div>
+              <div class="hidden md:block absolute top-1 bottom-1 w-1 court-net-vertical rounded-full"></div>
+              ${renderShuttlecockVSBadge()}
+            </div>
+
+            <!-- Sisi Lapangan B -->
+            <div class="space-y-2 p-1.5">
+              <div class="flex items-center md:justify-end gap-1.5">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-700">${sideBLabel}</span>
+                <span class="w-2 h-2 rounded-full bg-teal-600"></span>
+              </div>
+              <div class="space-y-1.5">
+                ${slotsB.map(slot => renderSlotChip(slot)).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMatchesTab(derived) {
+      const meta = getModeMeta();
+      const isOnePerSide = meta.perSide === 1;
+      const requiredSlots = meta.requiredSlots;
+      const availCount = derived.counts.available;
+      const finishedCount = derived.counts.finished;
+      const needsWildcardBanner = availCount > 0 && availCount < requiredSlots;
+
+      const manualPool = Array.from(derived.statsMap.values()).filter(st => {
+        if (st.status === 'available') return true;
+        if (uiState.allowWildcard && st.status === 'finished') return true;
+        return false;
+      }).sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'available' ? -1 : 1;
+        if (a.regularPlayed !== b.regularPlayed) return a.regularPlayed - b.regularPlayed;
+        return a.entity.name.localeCompare(b.entity.name, 'id');
+      });
+
+      const selectedManualIds = new Set(
+        (isOnePerSide
+          ? [uiState.manualSlots.a1, uiState.manualSlots.b1]
+          : [uiState.manualSlots.a1, uiState.manualSlots.a2, uiState.manualSlots.b1, uiState.manualSlots.b2]
+        ).filter(Boolean)
+      );
+
+      const renderManualSelect = (slotKey, label) => {
+        const currentVal = uiState.manualSlots[slotKey] || '';
+        return `
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">${label}</label>
+            <select
+              onchange="window.handleManualSlotChange('${slotKey}', this.value)"
+              class="w-full px-3 py-2.5 rounded-xl bg-white border border-[#CFE2D8] focus:border-[#059669] outline-none text-xs sm:text-sm font-semibold text-slate-800"
+            >
+              <option value="">-- Pilih ${meta.entityNoun} --</option>
+              ${manualPool.map(st => {
+                const isSelectedHere = st.entity.id === currentVal;
+                const isTakenElsewhere = !isSelectedHere && selectedManualIds.has(st.entity.id);
+                const wcTag = st.status === 'finished' ? ' [Wildcard]' : ` (${st.regularPlayed}/${state.settings.maxMatches})`;
+                return `
+                  <option value="${st.entity.id}" ${isSelectedHere ? 'selected' : ''} ${isTakenElsewhere ? 'disabled' : ''}>
+                    ${escapeHTML(st.entity.name)}${wcTag}${isTakenElsewhere ? ' — Sudah dipilih' : ''}
+                  </option>
+                `;
+              }).join('')}
+            </select>
+          </div>
+        `;
+      };
+
+      let draftHTML = '';
+      if (uiState.draftMatch) {
+        const mapDraftSlot = (id) => {
+          const st = derived.statsMap.get(id);
+          return {
+            id,
+            name: st ? st.entity.name : 'Peserta',
+            subName: st && st.entity.teamName && st.entity.player1 && st.entity.player2 ? `${st.entity.player1} / ${st.entity.player2}` : '',
+            isWildcard: st ? st.status === 'finished' : false,
+          };
+        };
+        const dA = uiState.draftMatch.teamA.map(mapDraftSlot);
+        const dB = uiState.draftMatch.teamB.map(mapDraftSlot);
+
+        draftHTML = `
+          <div class="mt-4 rounded-3xl border-2 border-[#059669] bg-white p-4 sm:p-5 space-y-4 shadow-md shadow-emerald-900/10">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-3 py-1 rounded-full bg-[#059669] text-white text-[11px] font-extrabold uppercase tracking-wider">
+                  Draft Match • Siap Dimulai
+                </span>
+                <span class="text-xs text-slate-500">Belum berjalan — cek susunan sebelum klik Start</span>
+              </div>
+              <button type="button" onclick="window.clearDraftMatch()" class="text-xs font-bold text-slate-400 hover:text-rose-600 cursor-pointer">
+                Hapus Draft
+              </button>
+            </div>
+
+            ${renderMiniCourtHeadToHead(dA, dB, meta.sideALabel, meta.sideBLabel)}
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-end justify-between gap-3 pt-2 border-t border-[#EAF3EE]">
+              <div class="w-full sm:w-52">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Nomor / Nama Lapangan</label>
+                <input
+                  type="text"
+                  value="${escapeHTML(uiState.draftMatch.court)}"
+                  oninput="window.updateDraftCourt(this.value)"
+                  placeholder="Court 1"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-[#F8FBF9] border border-[#CFE2D8] focus:bg-white focus:border-[#059669] outline-none text-sm font-bold text-slate-900"
+                />
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                ${uiState.matchmakingMode === 'auto' ? `
+                  <button
+                    type="button"
+                    onclick="window.generateSmartAutoMatch()"
+                    class="flex-1 sm:flex-none px-4 py-3 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs sm:text-sm font-bold transition cursor-pointer"
+                  >
+                    ↻ Acak Ulang
+                  </button>
+                ` : ''}
+                <button
+                  type="button"
+                  onclick="window.startDraftMatch()"
+                  class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-[#059669] hover:bg-[#047857] active:scale-[0.99] text-white text-xs sm:text-sm font-extrabold shadow-md shadow-emerald-700/20 transition cursor-pointer"
+                >
+                  ▶ Mulai Match (Start)
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <!-- Banner Peringatan Otomatis jika Sisa Peserta Tanggung -->
+        ${needsWildcardBanner ? `
+          <div class="rounded-2xl border border-amber-300 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div class="text-xs sm:text-sm text-amber-950 leading-snug">
+                <strong>Sisa ${meta.entityNoun} Tersedia Tanggung (${availCount}/${requiredSlots} slot)!</strong>
+                ${finishedCount > 0
+                  ? `Aktifkan fitur <strong>Wildcard (Penggenap)</strong> agar ${meta.entityNounLower} yang sudah selesai kuota bisa menggenapi pertandingan tanpa mengubah poin klasemen mereka.`
+                  : `Tambahkan ${meta.entityNounLower} baru atau tunggu pertandingan aktif selesai untuk melanjutkan.`}
+              </div>
+            </div>
+            ${!uiState.allowWildcard && finishedCount > 0 ? `
+              <button
+                type="button"
+                onclick="window.toggleWildcardOption(true)"
+                class="px-4 py-2 rounded-xl bg-[#D97706] hover:bg-amber-700 text-white text-xs font-extrabold shrink-0 cursor-pointer shadow-sm"
+              >
+                Aktifkan Wildcard
+              </button>
+            ` : ''}
+          </div>
+        ` : ''}
+
+        <!-- PANEL 1: MATCHMAKING PINTAR -->
+        <section class="bg-white border border-[#DCEAE3] rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900">
+                Matchmaking Pintar <span class="text-xs font-bold text-[#059669] ml-1">• ${meta.label}</span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Tersedia: <strong class="text-[#047857]">${availCount}</strong> • Selesai Kuota: <strong class="text-teal-700">${finishedCount}</strong> • Butuh <strong>${requiredSlots}</strong> slot/match
+              </p>
+            </div>
+
+            <label class="inline-flex items-center justify-between sm:justify-start gap-2.5 px-3.5 py-2 rounded-xl border cursor-pointer transition ${uiState.allowWildcard ? 'border-amber-400 bg-amber-50' : 'border-[#DCEAE3] bg-[#F8FBF9]'}">
+              <span class="text-xs font-bold ${uiState.allowWildcard ? 'text-amber-900' : 'text-slate-700'}">
+                Izinkan Pemain/Tim Wildcard
+              </span>
+              <input
+                type="checkbox"
+                ${uiState.allowWildcard ? 'checked' : ''}
+                onchange="window.toggleWildcardOption(this.checked)"
+                class="w-4 h-4 accent-amber-600 rounded cursor-pointer"
+              />
+            </label>
+          </div>
+
+          <!-- Switcher Acak Otomatis vs Pilih Manual -->
+          <div class="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-[#EEF5F1] border border-[#DCEAE3]">
+            <button
+              type="button"
+              onclick="window.setMatchmakingMode('auto')"
+              class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer ${uiState.matchmakingMode === 'auto' ? 'bg-[#059669] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+            >
+              Acak Otomatis
+            </button>
+            <button
+              type="button"
+              onclick="window.setMatchmakingMode('manual')"
+              class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer ${uiState.matchmakingMode === 'manual' ? 'bg-[#059669] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+            >
+              Pilih Manual
+            </button>
+          </div>
+
+          ${uiState.matchmakingMode === 'auto' ? `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F6FAF8] border border-[#DCEAE3] rounded-2xl p-4">
+              <div class="text-xs text-slate-600 leading-relaxed">
+                Sistem mendahulukan ${meta.entityNounLower} dengan <strong>jumlah main paling sedikit</strong>, lalu menyeimbangkan lawan sesuai poin klasemen. Hasil tampil di <strong>Draft Match</strong> terlebih dahulu sebelum tombol <strong>Start</strong> ditekan.
+              </div>
+              <button
+                type="button"
+                onclick="window.generateSmartAutoMatch()"
+                class="px-5 py-3 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs sm:text-sm font-extrabold shadow-sm transition cursor-pointer shrink-0"
+              >
+                ${uiState.draftMatch ? '↻ Acak Ulang Draft' : '⚡ Acak Otomatis'}
+              </button>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-[#F6FAF8] border border-[#DCEAE3] rounded-2xl p-4">
+              <div class="space-y-2.5">
+                <div class="text-xs font-extrabold uppercase tracking-wider text-[#047857]">Susunan ${meta.sideALabel}</div>
+                ${renderManualSelect('a1', isOnePerSide ? meta.sideALabel : 'Pemain A1')}
+                ${!isOnePerSide ? renderManualSelect('a2', 'Pemain A2') : ''}
+              </div>
+              <div class="space-y-2.5">
+                <div class="text-xs font-extrabold uppercase tracking-wider text-teal-700">Susunan ${meta.sideBLabel}</div>
+                ${renderManualSelect('b1', isOnePerSide ? meta.sideBLabel : 'Pemain B1')}
+                ${!isOnePerSide ? renderManualSelect('b2', 'Pemain B2') : ''}
+              </div>
+            </div>
+          `}
+
+          ${draftHTML}
+        </section>
+
+        <!-- PANEL 2: ACTIVE MATCHES (SEDANG BERLANGSUNG) -->
+        <section class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full ${derived.activeList.length > 0 ? 'bg-[#059669] animate-pulse' : 'bg-slate-300'}"></span>
+              <span>Lapangan Aktif (${derived.activeList.length})</span>
+            </h2>
+          </div>
+
+          ${derived.activeList.length === 0 ? `
+            <div class="bg-white border border-dashed border-[#BFD8CB] rounded-3xl p-8 text-center">
+              <p class="text-sm font-bold text-slate-600">Belum ada pertandingan yang sedang berlangsung di lapangan.</p>
+              <p class="text-xs text-slate-400 mt-1">Buat draft match di atas lalu klik <strong>Mulai Match (Start)</strong>.</p>
+            </div>
+          ` : `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              ${derived.activeList.map(match => renderActiveMatchCard(match)).join('')}
+            </div>
+          `}
+        </section>
+
+        <!-- PANEL 3: RIWAYAT PERTANDINGAN (MATCH HISTORY WITH EDIT) -->
+        <section class="space-y-3 pt-2">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm sm:text-base font-extrabold text-slate-900">
+              Riwayat Pertandingan (${derived.historyNewestFirst.length})
+            </h2>
+            <span class="text-xs text-slate-500">Klik <strong>Edit Match</strong> untuk koreksi skor</span>
+          </div>
+
+          ${derived.historyNewestFirst.length === 0 ? `
+            <div class="bg-white border border-[#DCEAE3] rounded-3xl p-8 text-center text-xs sm:text-sm text-slate-400">
+              Riwayat pertandingan yang sudah selesai akan tampil di sini.
+            </div>
+          ` : `
+            <div class="space-y-3">
+              ${derived.historyNewestFirst.map(h => renderHistoryCard(h)).join('')}
+            </div>
+          `}
+        </section>
+      `;
+    }
+
+    function renderActiveMatchCard(match) {
+      const mMeta = getModeMeta(match.mode);
+      const evalRes = evaluateMatchScores(match.scores, match.setCount, match.targetScore, match.deuceEnabled);
+      const elapsedSec = Math.floor((Date.now() - match.startTime) / 1000);
+      const targetVal = match.targetScore || 21;
+
+      return `
+        <article class="bg-white border border-[#DCEAE3] rounded-3xl p-4 sm:p-5 shadow-md shadow-emerald-950/5 space-y-4">
+          <!-- Header: Court, Match #, Real-time Start HH:MM:SS & Live Timer -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#EAF3EE]">
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-xl bg-[#059669] text-white text-xs font-extrabold shadow-xs">
+                ${escapeHTML(match.court)}
+              </span>
+              <span class="text-xs font-bold text-slate-500">Match #${match.matchNumber}</span>
+              <span class="hidden sm:inline-block px-2 py-0.5 rounded-lg bg-[#EDF7F1] text-[#047857] text-[10px] font-extrabold">
+                ${mMeta.mode === 'single' ? '1v1' : '2v2'}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2 text-xs font-mono">
+              <span class="text-slate-500">Mulai <strong class="text-slate-800">${formatClock(match.startTime, true)}</strong></span>
+              <span
+                data-timer-start="${match.startTime}"
+                class="scoreboard-digits px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#047857] font-extrabold"
+              >${formatDuration(elapsedSec)}</span>
+            </div>
+          </div>
+
+          <!-- Rule Pills -->
+          <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
+            <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700">${match.setCount} Set${match.setCount === 3 ? ' (Best of 3)' : match.setCount === 2 ? ' (Total Poin)' : ''}</span>
+            <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700">Target ${targetVal} Poin</span>
+            <span class="px-2.5 py-0.5 rounded-lg ${match.deuceEnabled ? 'bg-emerald-50 text-[#047857] border border-emerald-200' : 'bg-slate-100 text-slate-500'}">Deuce ${match.deuceEnabled ? 'ON' : 'OFF'}</span>
+          </div>
+
+          <!-- Mini Badminton Court Head-to-Head -->
+          ${renderMiniCourtHeadToHead(match.teamASlots, match.teamBSlots, mMeta.sideALabel, mMeta.sideBLabel)}
+
+          <!-- Best of 3 Dynamic Banner -->
+          ${match.setCount === 3 ? `
+            <div
+              id="active-bo3-banner-${match.id}"
+              class="${(evalRes.setsWonA === 2 || evalRes.setsWonB === 2 || evalRes.needsSet3) ? '' : 'hidden'} px-3 py-2 rounded-xl bg-teal-50 border border-teal-200 text-xs font-bold text-teal-800 text-center"
+            >
+              ${evalRes.setsWonA === 2 || evalRes.setsWonB === 2
+                ? `Match Selesai (2-0) — ${evalRes.setsWonA === 2 ? mMeta.sideALabel : mMeta.sideBLabel} Menang! Set 3 tidak diperlukan.`
+                : evalRes.needsSet3
+                  ? 'Kedudukan Set 1-1! Rubber Set (Set 3) otomatis dibuka.'
+                  : ''}
+            </div>
+          ` : ''}
+
+          <!-- Papan Skor Per Set (Tombol −, Input, +, dan Tombol Cepat Target Skor) -->
+          <div class="space-y-3">
+            ${Array.from({ length: match.setCount }).map((_, idx) => {
+              const sc = match.scores[idx] || { a: '', b: '' };
+              const sr = evalRes.setResults[idx] || { complete: false, valid: false, skipped: false, reason: '' };
+              const isHiddenSet3 = match.setCount === 3 && idx === 2 && !evalRes.needsSet3;
+
+              let hintText = `Target ${targetVal} (${match.deuceEnabled ? 'Deuce ON' : 'Deuce OFF'})`;
+              let hintClass = 'text-[11px] font-medium text-slate-500 text-right';
+              if (sr.complete && sr.valid) {
+                const winLbl = sr.winner === 'A' ? mMeta.sideALabel : mMeta.sideBLabel;
+                hintText = sr.winner === 'D' ? `✓ Set ${idx + 1} Seri` : `✓ ${winLbl} Menang Set ${idx + 1}`;
+                hintClass = 'text-[11px] font-bold text-[#047857] text-right';
+              } else if (sr.complete && !sr.valid) {
+                hintText = `⚠ ${sr.reason}`;
+                hintClass = 'text-[11px] font-bold text-amber-700 text-right';
+              }
+
+              return `
+                <div id="${idx === 2 ? `active-set3-row-${match.id}` : ''}" class="${isHiddenSet3 ? 'hidden' : ''} rounded-2xl bg-[#F6FAF8] border border-[#DCEAE3] p-3 space-y-2.5">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="px-2 py-0.5 rounded-md bg-white border border-[#DCEAE3] text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Set ${idx + 1}</span>
+                    <div id="active-set-hint-${match.id}-${idx}" class="${hintClass}">${escapeHTML(hintText)}</div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <!-- Scoreboard Box Side A -->
+                    <div class="bg-white border border-emerald-200 rounded-2xl p-2.5 shadow-2xs space-y-2">
+                      <div class="text-[10px] font-extrabold uppercase tracking-wider text-[#047857] text-center">${mMeta.sideALabel}</div>
+                      <div class="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onclick="window.stepActiveScore('${match.id}', ${idx}, 'a', -1)"
+                          aria-label="Kurangi 1 poin ${mMeta.sideALabel} Set ${idx + 1}"
+                          class="w-10 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 border border-slate-200 text-slate-800 font-black text-lg flex items-center justify-center transition cursor-pointer"
+                        >−</button>
+                        <input
+                          type="number"
+                          inputmode="numeric"
+                          min="0"
+                          max="99"
+                          id="active-score-input-${match.id}-${idx}-a"
+                          value="${escapeHTML(sc.a)}"
+                          oninput="window.handleActiveScoreInput('${match.id}', ${idx}, 'a', this.value)"
+                          placeholder="0"
+                          aria-label="Skor ${mMeta.sideALabel} Set ${idx + 1}"
+                          class="scoreboard-digits w-16 h-11 text-center font-mono text-2xl font-black rounded-xl bg-[#F2F7F4] border-2 border-emerald-300 focus:bg-white focus:border-[#059669] focus:ring-2 focus:ring-emerald-500/20 outline-none text-[#0F172A]"
+                        />
+                        <button
+                          type="button"
+                          onclick="window.stepActiveScore('${match.id}', ${idx}, 'a', 1)"
+                          aria-label="Tambah 1 poin ${mMeta.sideALabel} Set ${idx + 1}"
+                          class="w-10 h-11 rounded-xl bg-emerald-50 hover:bg-emerald-100 active:scale-95 border border-emerald-200 text-[#047857] font-black text-lg flex items-center justify-center transition cursor-pointer"
+                        >+</button>
+                        <button
+                          type="button"
+                          onclick="window.setQuickTargetActiveScore('${match.id}', ${idx}, 'a')"
+                          title="Isi otomatis skor ${mMeta.sideALabel} menjadi ${targetVal}"
+                          aria-label="Isi langsung ${targetVal} untuk ${mMeta.sideALabel} Set ${idx + 1}"
+                          class="px-3 h-11 rounded-xl bg-[#059669] hover:bg-[#047857] active:scale-95 text-white font-mono font-extrabold text-sm flex items-center justify-center shadow-xs transition cursor-pointer"
+                        >${targetVal}</button>
+                      </div>
+                    </div>
+
+                    <!-- Scoreboard Box Side B -->
+                    <div class="bg-white border border-teal-200 rounded-2xl p-2.5 shadow-2xs space-y-2">
+                      <div class="text-[10px] font-extrabold uppercase tracking-wider text-teal-700 text-center">${mMeta.sideBLabel}</div>
+                      <div class="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onclick="window.stepActiveScore('${match.id}', ${idx}, 'b', -1)"
+                          aria-label="Kurangi 1 poin ${mMeta.sideBLabel} Set ${idx + 1}"
+                          class="w-10 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 border border-slate-200 text-slate-800 font-black text-lg flex items-center justify-center transition cursor-pointer"
+                        >−</button>
+                        <input
+                          type="number"
+                          inputmode="numeric"
+                          min="0"
+                          max="99"
+                          id="active-score-input-${match.id}-${idx}-b"
+                          value="${escapeHTML(sc.b)}"
+                          oninput="window.handleActiveScoreInput('${match.id}', ${idx}, 'b', this.value)"
+                          placeholder="0"
+                          aria-label="Skor ${mMeta.sideBLabel} Set ${idx + 1}"
+                          class="scoreboard-digits w-16 h-11 text-center font-mono text-2xl font-black rounded-xl bg-[#F2F7F4] border-2 border-teal-300 focus:bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 outline-none text-[#0F172A]"
+                        />
+                        <button
+                          type="button"
+                          onclick="window.stepActiveScore('${match.id}', ${idx}, 'b', 1)"
+                          aria-label="Tambah 1 poin ${mMeta.sideBLabel} Set ${idx + 1}"
+                          class="w-10 h-11 rounded-xl bg-teal-50 hover:bg-teal-100 active:scale-95 border border-teal-200 text-teal-800 font-black text-lg flex items-center justify-center transition cursor-pointer"
+                        >+</button>
+                        <button
+                          type="button"
+                          onclick="window.setQuickTargetActiveScore('${match.id}', ${idx}, 'b')"
+                          title="Isi otomatis skor ${mMeta.sideBLabel} menjadi ${targetVal}"
+                          aria-label="Isi langsung ${targetVal} untuk ${mMeta.sideBLabel} Set ${idx + 1}"
+                          class="px-3 h-11 rounded-xl bg-teal-600 hover:bg-teal-700 active:scale-95 text-white font-mono font-extrabold text-sm flex items-center justify-center shadow-xs transition cursor-pointer"
+                        >${targetVal}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Live Winner Preview -->
+          <div
+            id="active-match-preview-${match.id}"
+            class="${evalRes.isValidMatch
+              ? 'text-xs font-bold text-[#047857] bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2'
+              : 'text-xs font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2'}"
+          >
+            <span>
+              ${evalRes.isValidMatch
+                ? `✓ Siap Disimpan: ${evalRes.winner === 'A' ? `${mMeta.sideALabel} Menang` : evalRes.winner === 'B' ? `${mMeta.sideBLabel} Menang` : 'Hasil Seri (Draw)'}`
+                : escapeHTML(evalRes.firstError || 'Masukkan skor yang sah untuk menyelesaikan match.')}
+            </span>
+            <span class="scoreboard-digits font-mono font-extrabold text-slate-800">${evalRes.totalA} - ${evalRes.totalB}</span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
+            <button
+              type="button"
+              onclick="window.submitActiveMatchScore('${match.id}')"
+              class="flex-1 py-3 px-4 rounded-xl bg-[#059669] hover:bg-[#047857] active:scale-[0.99] text-white text-xs sm:text-sm font-extrabold shadow-sm transition cursor-pointer"
+            >
+              ✓ Simpan Skor &amp; Selesai
+            </button>
+            <button
+              type="button"
+              onclick="window.confirmCancelActiveMatch('${match.id}')"
+              class="py-3 px-4 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold transition cursor-pointer"
+            >
+              WO / Batalkan Match
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderHistoryCard(h) {
+      const mMeta = getModeMeta(h.mode);
+      const durSec = Math.max(1, Math.floor((h.endTime - h.startTime) / 1000));
+      const setsBadge = h.sets.map((s, i) => `Set ${i + 1}: ${s.a}-${s.b}`).join('  •  ');
+
+      const renderHistTeam = (slots, isWinner, label, accent) => `
+        <div class="rounded-2xl p-3 border ${isWinner ? 'bg-emerald-50/85 border-emerald-300' : 'bg-[#F8FBF9] border-[#DCEAE3]'}">
+          <div class="flex items-center justify-between gap-1 mb-1">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider ${accent}">${label}</span>
+            ${isWinner ? `<span class="text-[10px] font-extrabold text-[#047857]">★ MENANG</span>` : ''}
+          </div>
+          <div class="space-y-1">
+            ${slots.map(s => `
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs sm:text-sm font-bold text-slate-900">${escapeHTML(s.name)}</span>
+                ${s.isWildcard ? `
+                  <span class="px-1.5 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 text-[9px] font-extrabold">
+                    Wildcard
+                  </span>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      return `
+        <article class="bg-white border border-[#DCEAE3] rounded-2xl p-4 shadow-2xs space-y-3 hover:border-emerald-300 transition">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="px-2.5 py-0.5 rounded-lg bg-[#EDF7F1] border border-[#C6E5D6] font-extrabold text-[#047857]">
+                Match #${h.matchNumber}
+              </span>
+              <span class="font-bold text-slate-800">${escapeHTML(h.court)}</span>
+              <span class="text-slate-300">•</span>
+              <span class="font-mono text-slate-500">${formatClock(h.startTime, true)} – ${formatClock(h.endTime, true)} (${formatDuration(durSec)})</span>
+            </div>
+
+            <button
+              type="button"
+              onclick="window.openEditHistoryModal('${h.id}')"
+              class="px-3 py-1.5 rounded-xl bg-[#F6FAF8] hover:bg-emerald-50 border border-[#DCEAE3] hover:border-emerald-300 text-slate-700 hover:text-[#047857] text-xs font-bold transition cursor-pointer"
+            >
+              ✎ Edit Match
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-2.5 items-center">
+            ${renderHistTeam(h.teamASlots, h.winner === 'A', mMeta.sideALabel, 'text-[#047857]')}
+
+            <div class="text-center px-4 py-2 rounded-2xl bg-[#F6FAF8] border border-[#DCEAE3]">
+              <div class="scoreboard-digits font-mono text-xl font-black text-slate-900">
+                <span class="${h.winner === 'A' ? 'text-[#059669]' : 'text-slate-700'}">${h.totalA}</span>
+                <span class="text-slate-300 mx-1">-</span>
+                <span class="${h.winner === 'B' ? 'text-[#059669]' : 'text-slate-700'}">${h.totalB}</span>
+              </div>
+              <div class="text-[10px] font-mono text-slate-500 mt-0.5">${escapeHTML(setsBadge)}</div>
+              ${h.winner === 'D' ? `<div class="text-[10px] font-extrabold text-amber-700 mt-0.5">SERI (DRAW)</div>` : ''}
+            </div>
+
+            ${renderHistTeam(h.teamBSlots, h.winner === 'B', mMeta.sideBLabel, 'text-teal-700')}
+          </div>
+        </article>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // TAB 3: PODIUM JUARA (COURT BASE + LARGE NAMES & MEDALS) & KLASEMEN LIVE
+    // -------------------------------------------------------------------------
+    function renderGrandMedalSVG(rank) {
+      if (rank === 1) {
+        return `
+          <div class="relative flex items-center justify-center my-2.5">
+            <div class="absolute w-36 h-36 sm:w-40 sm:h-40 rounded-full aura-gold pointer-events-none"></div>
+
+            <svg class="sparkle-1 absolute -top-2 -left-4 w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2L12 2z"/></svg>
+            <svg class="sparkle-2 absolute top-1 -right-4 w-4 h-4 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2L12 2z"/></svg>
+            <svg class="sparkle-3 absolute -bottom-1 -left-3 w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2L12 2z"/></svg>
+            <svg class="sparkle-4 absolute bottom-2 -right-3 w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2L12 2z"/></svg>
+
+            <svg class="relative z-10 w-28 h-28 sm:w-32 sm:h-32 animate-float-gold drop-shadow-[0_14px_20px_rgba(217,119,6,0.36)]" viewBox="0 0 120 120" fill="none">
+              <defs>
+                <linearGradient id="goldMedalOuterB" x1="20" y1="30" x2="100" y2="112" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FEF08A"/>
+                  <stop offset="35%" stop-color="#F59E0B"/>
+                  <stop offset="75%" stop-color="#D97706"/>
+                  <stop offset="100%" stop-color="#92400E"/>
+                </linearGradient>
+                <linearGradient id="goldMedalInnerB" x1="30" y1="40" x2="90" y2="102" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FFFBEB"/>
+                  <stop offset="45%" stop-color="#FBBF24"/>
+                  <stop offset="100%" stop-color="#B45309"/>
+                </linearGradient>
+                <linearGradient id="goldCrownB" x1="42" y1="8" x2="78" y2="26" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FDE047"/>
+                  <stop offset="100%" stop-color="#D97706"/>
+                </linearGradient>
+              </defs>
+              <path d="M44 26L40 12L51 18L60 7L69 18L80 12L76 26H44Z" fill="url(#goldCrownB)" stroke="#B45309" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M36 26L52 44H60L46 26H36Z" fill="#047857"/>
+              <path d="M84 26L68 44H60L74 26H84Z" fill="#059669"/>
+              <path d="M21 68C19 83 28 97 42 105" stroke="#D97706" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 5"/>
+              <path d="M99 68C101 83 92 97 78 105" stroke="#D97706" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 5"/>
+              <circle cx="60" cy="72" r="34" fill="url(#goldMedalOuterB)" stroke="#FEF3C7" stroke-width="3"/>
+              <circle cx="60" cy="72" r="26.5" fill="url(#goldMedalInnerB)" stroke="#FDE68A" stroke-width="1.8"/>
+              <path d="M60 49L64.5 59.5L76 60.8L67.3 68.4L69.8 79.6L60 73.8L50.2 79.6L52.7 68.4L44 60.8L55.5 59.5L60 49Z" fill="#FFFFFF" fill-opacity="0.38"/>
+              <text x="60" y="81" text-anchor="middle" fill="#451A03" font-family="Inter, sans-serif" font-weight="900" font-size="28">1</text>
+            </svg>
+          </div>
+        `;
+      }
+
+      if (rank === 2) {
+        return `
+          <div class="relative flex items-center justify-center my-2">
+            <div class="absolute w-28 h-28 rounded-full aura-silver pointer-events-none"></div>
+            <svg class="sparkle-2 absolute top-0 -right-2 w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2L12 2z"/></svg>
+            <svg class="relative z-10 w-24 h-24 sm:w-26 sm:h-26 animate-float-silver drop-shadow-[0_10px_16px_rgba(100,116,139,0.34)]" viewBox="0 0 100 100" fill="none">
+              <defs>
+                <linearGradient id="silverOuterB" x1="18" y1="26" x2="82" y2="92" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#F8FAFC"/>
+                  <stop offset="45%" stop-color="#CBD5E1"/>
+                  <stop offset="100%" stop-color="#475569"/>
+                </linearGradient>
+                <linearGradient id="silverInnerB" x1="25" y1="35" x2="75" y2="85" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FFFFFF"/>
+                  <stop offset="60%" stop-color="#94A3B8"/>
+                  <stop offset="100%" stop-color="#64748B"/>
+                </linearGradient>
+              </defs>
+              <path d="M30 12L44 35H52L39 12H30Z" fill="#047857"/>
+              <path d="M70 12L56 35H48L61 12H70Z" fill="#10B981"/>
+              <circle cx="50" cy="60" r="29" fill="url(#silverOuterB)" stroke="#FFFFFF" stroke-width="2.5"/>
+              <circle cx="50" cy="60" r="22" fill="url(#silverInnerB)" stroke="#E2E8F0" stroke-width="1.5"/>
+              <text x="50" y="69" text-anchor="middle" fill="#0F172A" font-family="Inter, sans-serif" font-weight="900" font-size="25">2</text>
+            </svg>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="relative flex items-center justify-center my-2">
+          <div class="absolute w-28 h-28 rounded-full aura-bronze pointer-events-none"></div>
+          <svg class="sparkle-3 absolute top-0 -left-2 w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2L12 2z"/></svg>
+          <svg class="relative z-10 w-24 h-24 sm:w-26 sm:h-26 animate-float-bronze drop-shadow-[0_10px_16px_rgba(194,65,12,0.34)]" viewBox="0 0 100 100" fill="none">
+            <defs>
+              <linearGradient id="bronzeOuterB" x1="18" y1="26" x2="82" y2="92" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FED7AA"/>
+                <stop offset="45%" stop-color="#EA580C"/>
+                <stop offset="100%" stop-color="#7C2D12"/>
+              </linearGradient>
+              <linearGradient id="bronzeInnerB" x1="25" y1="35" x2="75" y2="85" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFEDD5"/>
+                <stop offset="55%" stop-color="#FB923C"/>
+                <stop offset="100%" stop-color="#9A3412"/>
+              </linearGradient>
+            </defs>
+            <path d="M30 12L44 35H52L39 12H30Z" fill="#0F766E"/>
+            <path d="M70 12L56 35H48L61 12H70Z" fill="#14B8A6"/>
+            <circle cx="50" cy="60" r="29" fill="url(#bronzeOuterB)" stroke="#FFEDD5" stroke-width="2.5"/>
+            <circle cx="50" cy="60" r="22" fill="url(#bronzeInnerB)" stroke="#FDBA74" stroke-width="1.5"/>
+            <text x="50" y="69" text-anchor="middle" fill="#431407" font-family="Inter, sans-serif" font-weight="900" font-size="25">3</text>
+          </svg>
+        </div>
+      `;
+    }
+
+    function renderSmallRankBadge(rank) {
+      if (rank === 1) {
+        return `<span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 text-amber-950 font-black text-xs shadow-sm">1</span>`;
+      }
+      if (rank === 2) {
+        return `<span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 text-slate-900 font-black text-xs shadow-sm">2</span>`;
+      }
+      if (rank === 3) {
+        return `<span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 text-orange-950 font-black text-xs shadow-sm">3</span>`;
+      }
+      return `<span class="font-mono font-bold text-slate-500 text-xs">${rank}</span>`;
+    }
+
+    function renderLeaderboardTab(derived) {
+      const ranked = derived.leaderboard;
+      const meta = getModeMeta();
+      const maxM = state.settings.maxMatches;
+
+      if (ranked.length === 0) {
+        return `
+          <div class="bg-white border border-[#DCEAE3] rounded-3xl p-12 text-center shadow-xs space-y-2">
+            <div class="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-[#D97706] flex items-center justify-center mx-auto">
+              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            </div>
+            <h2 class="text-base font-extrabold text-slate-900">Klasemen Live Masih Kosong</h2>
+            <p class="text-xs text-slate-500 max-w-md mx-auto">
+              Tambahkan ${meta.entityNounLower} di Tab 1 dan selesaikan pertandingan pertama untuk melihat Podium Juara dan Klasemen Live!
+            </p>
+          </div>
+        `;
+      }
+
+      const top1 = ranked[0] || null;
+      const top2 = ranked[1] || null;
+      const top3 = ranked[2] || null;
+
+      const podiumItems = [
+        {
+          st: top2,
+          rank: 2,
+          orderCls: 'order-2 sm:order-1 sm:mt-8',
+          cardCls: 'champion-shimmer-card border-2 border-slate-300 bg-gradient-to-b from-slate-100 via-white to-white shadow-lg shadow-slate-300/40',
+          pillCls: 'bg-slate-700 text-white',
+          nameCls: 'text-xl sm:text-2xl font-extrabold text-slate-900',
+          title: 'Juara 2 • Perak'
+        },
+        {
+          st: top1,
+          rank: 1,
+          orderCls: 'order-1 sm:order-2',
+          cardCls: 'champion-shimmer-card border-2 border-amber-400 bg-gradient-to-b from-amber-100/80 via-amber-50/40 to-white shadow-xl shadow-amber-400/25 ring-2 ring-amber-200/70 sm:-translate-y-2',
+          pillCls: 'bg-gradient-to-r from-[#D97706] to-amber-500 text-white shadow-sm',
+          nameCls: 'text-2xl sm:text-3xl font-black text-slate-950 tracking-tight',
+          title: 'Juara 1 • Emas'
+        },
+        {
+          st: top3,
+          rank: 3,
+          orderCls: 'order-3 sm:order-3 sm:mt-10',
+          cardCls: 'champion-shimmer-card border-2 border-orange-300 bg-gradient-to-b from-orange-100/70 via-white to-white shadow-lg shadow-orange-300/30',
+          pillCls: 'bg-orange-600 text-white',
+          nameCls: 'text-xl sm:text-2xl font-extrabold text-slate-900',
+          title: 'Juara 3 • Perunggu'
+        },
+      ].filter(p => p.st !== null);
+
+      return `
+        <!-- GRAND CHAMPIONSHIP PODIUM (DASAR GARIS LAPANGAN + NAMA & MEDALI BESAR) -->
+        <section class="podium-court-stage rounded-3xl p-4 sm:p-6 pb-8">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+            ${podiumItems.map(({ st, rank, orderCls, cardCls, pillCls, nameCls, title }) => {
+              const pdStr = st.pd > 0 ? `+${st.pd}` : `${st.pd}`;
+              const hasSub = st.entity.teamName && st.entity.player1 && st.entity.player2;
+
+              return `
+                <div class="${orderCls} rounded-3xl ${cardCls} p-5 sm:p-6 flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1.5">
+                  <span class="relative z-10 px-3.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${pillCls}">
+                    ${title}
+                  </span>
+
+                  ${renderGrandMedalSVG(rank)}
+
+                  <div class="relative z-10 w-full mt-1">
+                    <div class="${nameCls} leading-tight break-words px-1">
+                      ${escapeHTML(st.entity.name)}
+                    </div>
+                    ${hasSub ? `
+                      <div class="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
+                        (${escapeHTML(st.entity.player1)} / ${escapeHTML(st.entity.player2)})
+                      </div>
+                    ` : ''}
+                  </div>
+
+                  <div class="relative z-10 w-full grid grid-cols-3 gap-2 mt-4 pt-3.5 border-t border-slate-200/80">
+                    <div class="rounded-xl bg-[#F6FAF8] border border-[#DCEAE3] py-2 px-1">
+                      <div class="text-[10px] font-bold uppercase text-slate-400">Menang</div>
+                      <div class="scoreboard-digits text-sm sm:text-base font-black font-mono text-[#047857] mt-0.5">${st.wins}M</div>
+                    </div>
+                    <div class="rounded-xl bg-[#F6FAF8] border border-[#DCEAE3] py-2 px-1">
+                      <div class="text-[10px] font-bold uppercase text-slate-400">Selisih</div>
+                      <div class="scoreboard-digits text-sm sm:text-base font-black font-mono ${st.pd > 0 ? 'text-[#059669]' : st.pd < 0 ? 'text-rose-600' : 'text-slate-600'} mt-0.5">${pdStr}</div>
+                    </div>
+                    <div class="rounded-xl bg-[#F6FAF8] border border-[#DCEAE3] py-2 px-1">
+                      <div class="text-[10px] font-bold uppercase text-slate-400">Poin</div>
+                      <div class="scoreboard-digits text-sm sm:text-base font-black font-mono text-[#D97706] mt-0.5">${st.pf}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </section>
+
+        <!-- TABEL KLASEMEN LENGKAP (TANPA KOLOM STATUS) -->
+        <section class="bg-white border border-[#DCEAE3] rounded-3xl overflow-hidden shadow-xs">
+          <div class="p-4 sm:p-5 border-b border-[#EAF3EE]">
+            <h2 class="text-sm sm:text-base font-extrabold text-slate-900">Tabel Klasemen Live</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Urutan tie-breaker: <strong class="text-slate-700">1. Menang (M)</strong> &rarr; <strong class="text-slate-700">2. Selisih Poin (PD)</strong> &rarr; <strong class="text-slate-700">3. Total Poin Masuk (PF)</strong>. Laga Wildcard tidak dihitung.
+            </p>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-[#F4F9F6] border-b border-[#DCEAE3] text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                  <th class="py-3 px-3 sm:px-4 text-center w-14">Rank</th>
+                  <th class="py-3 px-3 sm:px-4">Nama ${meta.entityNoun}</th>
+                  <th class="py-3 px-2.5 sm:px-3 text-center">Main</th>
+                  <th class="py-3 px-2 sm:px-2.5 text-center text-[#047857]" title="Menang">M</th>
+                  <th class="py-3 px-2 sm:px-2.5 text-center text-slate-500" title="Seri">S</th>
+                  <th class="py-3 px-2 sm:px-2.5 text-center text-rose-600" title="Kalah">K</th>
+                  <th class="py-3 px-2 sm:px-2.5 text-center" title="Poin Masuk">PF</th>
+                  <th class="py-3 px-2 sm:px-2.5 text-center" title="Poin Kemasukan">PA</th>
+                  <th class="py-3 px-3 sm:px-4 text-center" title="Selisih Poin">PD</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#EAF3EE] text-xs sm:text-sm">
+                ${ranked.map((st, idx) => {
+                  const rank = idx + 1;
+                  const pdStr = st.pd > 0 ? `+${st.pd}` : `${st.pd}`;
+                  const pdCls = st.pd > 0
+                    ? 'bg-emerald-50 text-[#047857] border border-emerald-200'
+                    : st.pd < 0
+                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                      : 'bg-slate-100 text-slate-600 border border-slate-200';
+                  const hasSub = st.entity.teamName && st.entity.player1 && st.entity.player2;
+
+                  return `
+                    <tr class="hover:bg-[#F6FAF8] transition ${rank === 1 ? 'bg-amber-50/45' : ''}">
+                      <td class="py-3 px-3 sm:px-4 text-center whitespace-nowrap">
+                        ${renderSmallRankBadge(rank)}
+                      </td>
+                      <td class="py-3 px-3 sm:px-4">
+                        <div class="font-bold text-slate-900">${escapeHTML(st.entity.name)}</div>
+                        ${hasSub ? `
+                          <div class="text-[11px] text-slate-500">(${escapeHTML(st.entity.player1)} / ${escapeHTML(st.entity.player2)})</div>
+                        ` : ''}
+                      </td>
+                      <td class="py-3 px-2.5 sm:px-3 text-center whitespace-nowrap">
+                        <span class="scoreboard-digits font-mono font-bold text-slate-800">${st.regularPlayed}/${maxM}</span>
+                        ${st.wildcardPlayed > 0 ? `
+                          <span class="ml-1 inline-block px-1.5 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-extrabold">
+                            +${st.wildcardPlayed} WC
+                          </span>
+                        ` : ''}
+                      </td>
+                      <td class="scoreboard-digits py-3 px-2 sm:px-2.5 text-center font-mono font-extrabold text-[#047857]">${st.wins}</td>
+                      <td class="scoreboard-digits py-3 px-2 sm:px-2.5 text-center font-mono font-bold text-slate-500">${st.draws}</td>
+                      <td class="scoreboard-digits py-3 px-2 sm:px-2.5 text-center font-mono font-bold text-rose-600">${st.losses}</td>
+                      <td class="scoreboard-digits py-3 px-2 sm:px-2.5 text-center font-mono font-semibold text-slate-800">${st.pf}</td>
+                      <td class="scoreboard-digits py-3 px-2 sm:px-2.5 text-center font-mono font-semibold text-slate-500">${st.pa}</td>
+                      <td class="py-3 px-3 sm:px-4 text-center whitespace-nowrap">
+                        <span class="scoreboard-digits inline-block min-w-[44px] px-2 py-0.5 rounded-lg font-mono font-extrabold text-xs ${pdCls}">
+                          ${pdStr}
+                        </span>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderAll() {
+      const derived = recalculateStats();
+      renderNav(derived);
+
+      const main = document.getElementById('app-main');
+      if (!main) return;
+
+      if (uiState.activeTab === 'participants') {
+        main.innerHTML = renderParticipantsTab(derived);
+      } else if (uiState.activeTab === 'matches') {
+        main.innerHTML = renderMatchesTab(derived);
+      } else {
+        main.innerHTML = renderLeaderboardTab(derived);
+      }
+    }
+
+    // =========================================================================
+    // 14. LIVE ACTIVE MATCH TIMER LOOP
+    // =========================================================================
+    setInterval(() => {
+      if (uiState.activeTab !== 'matches' || state.activeMatches.length === 0) return;
+      const now = Date.now();
+      document.querySelectorAll('[data-timer-start]').forEach(el => {
+        const startTs = Number(el.getAttribute('data-timer-start'));
+        if (startTs > 0) {
+          el.textContent = formatDuration((now - startTs) / 1000);
+        }
+      });
+    }, 1000);
+
+    // =========================================================================
+    // 15. BOOTSTRAP APPLICATION
+    // =========================================================================
+    function initApp() {
+      loadLocalMirror(currentRoomId);
+      updateCloudBadgeUI();
+      renderAll();
+      initFirebaseCloud();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
