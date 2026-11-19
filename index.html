@@ -414,9 +414,16 @@
     // 1. CONSTANTS, ENVIRONMENT & DEFAULT STATE
     // =========================================================================
     const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'badminton-mabar-pro';
-    const FIREBASE_CONFIG = typeof __firebase_config !== 'undefined'
-      ? (typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config)
-      : null;
+
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAchh91cCBegTtKV400JiM9Ym2VB6ifJ04",
+      authDomain: "minton-bad.firebaseapp.com",
+      projectId: "minton-bad",
+      storageBucket: "minton-bad.firebasestorage.app",
+      messagingSenderId: "793103006391",
+      appId: "1:793103006391:web:bd9845d376c6a9f3c6ab32"
+    };
+
     const INITIAL_AUTH_TOKEN = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
     const VALID_MODES = ['individual', 'fixed_pair', 'single'];
